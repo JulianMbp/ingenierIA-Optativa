@@ -4,6 +4,7 @@ import 'package:clean_architecture/presentation/bloc/auth/auth_event.dart';
 import 'package:clean_architecture/presentation/bloc/auth/auth_state.dart';
 import 'package:clean_architecture/presentation/pages/home_page.dart';
 import 'package:clean_architecture/presentation/pages/login_page.dart';
+import 'package:clean_architecture/presentation/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,20 +24,33 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Gestión de Obra',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1565C0)),
-          useMaterial3: true,
-          appBarTheme: const AppBarTheme(centerTitle: true),
-          inputDecorationTheme: const InputDecorationTheme(
-            border: OutlineInputBorder(),
-          ),
-        ),
+        theme: AppTheme.lightTheme,
         home: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
             if (state is AuthLoading) {
-              return const Scaffold(
+              return Scaffold(
+                backgroundColor: AppTheme.backgroundColor,
                 body: Center(
-                  child: CircularProgressIndicator(),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: AppTheme.primaryGradient,
+                          shape: BoxShape.circle,
+                          boxShadow: AppTheme.shadowXl,
+                        ),
+                        child: const Icon(
+                          Icons.construction,
+                          size: 48,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const CircularProgressIndicator(),
+                    ],
+                  ),
                 ),
               );
             } else if (state is AuthAuthenticated) {
