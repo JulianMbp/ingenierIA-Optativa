@@ -40,8 +40,9 @@ Algunos reportes se envían directamente a la ARL, algunos por correo con format
 Se busca mitigar multas y accidentes.  
 
 
-5. Gestión documental y digitalización
+5. Gestión documental y digitalización con IA
 
+se debe implementar un modelo de IA para la digitalización de documentos.
 Actualmente la información se maneja en papel y en Excel.  
 Los formatos son estandarizados, pero varían entre empresas. 
 Se debe digitalizar para reducir la cantidad de documentos físicos y facilitar búsqueda. 
