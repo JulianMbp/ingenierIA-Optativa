@@ -185,26 +185,55 @@ class _SelectObraScreenState extends ConsumerState<SelectObraScreen> {
                                               ],
                                             ),
                                           ],
-                                          if (obra.fechaInicio != null) ...[
-                                            const SizedBox(height: 8),
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.calendar_today,
-                                                  size: 16,
-                                                  color: Colors.grey,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  'Inicio: ${_formatDate(obra.fechaInicio!)}',
-                                                  style: const TextStyle(
-                                                    fontSize: 13,
-                                                    color: Colors.grey,
+                                          const SizedBox(height: 12),
+                                          Row(
+                                            children: [
+                                              if (obra.estado != null) ...[
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 6,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: obra.isActiva 
+                                                        ? Colors.green.withOpacity(0.2)
+                                                        : Colors.orange.withOpacity(0.2),
+                                                    borderRadius: BorderRadius.circular(12),
+                                                  ),
+                                                  child: Text(
+                                                    obra.estado!.toUpperCase(),
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: obra.isActiva 
+                                                          ? Colors.green
+                                                          : Colors.orange,
+                                                    ),
                                                   ),
                                                 ),
+                                                const SizedBox(width: 12),
                                               ],
-                                            ),
-                                          ],
+                                              if (obra.roleName != null)
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 6,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: AppTheme.iosBlue.withOpacity(0.2),
+                                                    borderRadius: BorderRadius.circular(12),
+                                                  ),
+                                                  child: Text(
+                                                    obra.roleName!,
+                                                    style: const TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: AppTheme.iosBlue,
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -219,9 +248,5 @@ class _SelectObraScreenState extends ConsumerState<SelectObraScreen> {
         ),
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
   }
 }

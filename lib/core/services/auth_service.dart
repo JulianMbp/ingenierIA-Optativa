@@ -33,19 +33,26 @@ class AuthService {
         },
       );
 
-      final data = response.data['data'];
-      final token = data['access_token'];
-      final user = User.fromJson(data['user']);
+      print('Login response: ${response.data}');
 
-      // Save token and user data
+      // La respuesta viene directamente sin envolver en 'data'
+      final token = response.data['token'];
+      final refreshToken = response.data['refreshToken'];
+      final tokenExpires = response.data['tokenExpires'];
+      final user = User.fromJson(response.data['user']);
+
+      // Save tokens and user data
       await _storageService.saveToken(token);
       await _storageService.saveUserData(jsonEncode(user.toJson()));
 
       return {
         'token': token,
+        'refreshToken': refreshToken,
+        'tokenExpires': tokenExpires,
         'user': user,
       };
     } catch (e) {
+      print('Login error: $e');
       throw Exception('Login failed: ${e.toString()}');
     }
   }

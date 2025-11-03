@@ -7,28 +7,36 @@ enum RoleType {
 }
 
 class Role {
-  final String id;
+  final int id;
   final String name;
+  final String? descripcion;
   final RoleType type;
-  final List<String> permissions;
+  final String? createdAt;
+  final String? updatedAt;
 
   Role({
     required this.id,
     required this.name,
+    this.descripcion,
     required this.type,
-    required this.permissions,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory Role.fromJson(Map<String, dynamic> json) {
     return Role(
-      id: json['id'] ?? '',
+      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
       name: json['name'] ?? '',
+      descripcion: json['descripcion'],
       type: _parseRoleType(json['name']),
-      permissions: List<String>.from(json['permissions'] ?? []),
+      createdAt: json['createdAt'],
+      updatedAt: json['updatedAt'],
     );
   }
 
-  static RoleType _parseRoleType(String name) {
+  static RoleType _parseRoleType(String? name) {
+    if (name == null) return RoleType.obrero;
+    
     switch (name.toLowerCase()) {
       case 'admin general':
       case 'admin_general':
@@ -51,7 +59,9 @@ class Role {
     return {
       'id': id,
       'name': name,
-      'permissions': permissions,
+      'descripcion': descripcion,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
     };
   }
 }

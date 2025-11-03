@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/widgets/glass_container.dart';
-import '../../core/models/role.dart';
+
 import '../../config/theme.dart';
+import '../../core/models/role.dart';
+import '../../core/widgets/glass_container.dart';
 import '../auth/auth_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -99,8 +100,8 @@ class DashboardScreen extends ConsumerWidget {
                           radius: 30,
                           backgroundColor: AppTheme.iosBlue.withOpacity(0.2),
                           child: Text(
-                            user.name.isNotEmpty
-                                ? user.name[0].toUpperCase()
+                            user.firstName.isNotEmpty
+                                ? user.firstName[0].toUpperCase()
                                 : '?',
                             style: const TextStyle(
                               fontSize: 24,
@@ -115,7 +116,7 @@ class DashboardScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                user.name,
+                                user.fullName,
                                 style: Theme.of(context)
                                     .textTheme
                                     .headlineMedium

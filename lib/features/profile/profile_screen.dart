@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/widgets/glass_container.dart';
+
 import '../../config/theme.dart';
+import '../../core/widgets/glass_container.dart';
 import '../auth/auth_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -55,8 +56,8 @@ class ProfileScreen extends ConsumerWidget {
                         radius: 50,
                         backgroundColor: AppTheme.iosBlue.withOpacity(0.2),
                         child: Text(
-                          user.name.isNotEmpty
-                              ? user.name[0].toUpperCase()
+                          user.firstName.isNotEmpty
+                              ? user.firstName[0].toUpperCase()
                               : '?',
                           style: const TextStyle(
                             fontSize: 40,
@@ -67,7 +68,7 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        user.name,
+                        user.fullName,
                         style: Theme.of(context).textTheme.headlineMedium,
                         textAlign: TextAlign.center,
                       ),
@@ -117,13 +118,13 @@ class ProfileScreen extends ConsumerWidget {
                       _InfoRow(
                         icon: Icons.badge_outlined,
                         label: 'ID',
-                        value: user.id,
+                        value: user.id.toString(),
                       ),
                       const SizedBox(height: 16),
                       _InfoRow(
-                        icon: Icons.shield_outlined,
-                        label: 'Permisos',
-                        value: '${user.role.permissions.length} permisos',
+                        icon: Icons.business_outlined,
+                        label: 'Descripción',
+                        value: user.role.descripcion ?? 'Sin descripción',
                       ),
                     ],
                   ),

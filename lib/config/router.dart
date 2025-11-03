@@ -14,19 +14,26 @@ import '../features/dashboard/modules/presupuestos_screen.dart';
 import '../features/obras/select_obra_screen.dart';
 import '../features/profile/profile_screen.dart';
 
-// Notifier para refrescar el router cuando cambie el estado de auth
-class AuthStateNotifier extends ChangeNotifier {
-  final Ref ref;
-  
-  AuthStateNotifier(this.ref) {
-    ref.listen(authProvider, (previous, next) {
-      notifyListeners();
-    });
+// Notifier simple que se actualiza cuando cambia el estado de auth
+class RouterNotifier extends ChangeNotifier {
+  void notify() {
+    notifyListeners();
   }
 }
 
+final _routerNotifierProvider = Provider<RouterNotifier>((ref) {
+  final notifier = RouterNotifier();
+  
+  // Escuchar cambios en authProvider y notificar al router
+  ref.listen(authProvider, (previous, next) {
+    notifier.notify();
+  });
+  
+  return notifier;
+});
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final notifier = AuthStateNotifier(ref);
+  final notifier = ref.watch(_routerNotifierProvider);
   
   return GoRouter(
     initialLocation: '/login',

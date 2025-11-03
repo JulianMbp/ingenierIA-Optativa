@@ -79,7 +79,7 @@ class _BitacorasScreenState extends ConsumerState<BitacorasScreen> {
     
     // Obreros solo pueden editar sus propias bitácoras
     if (userRole == RoleType.obrero) {
-      return bitacora.autorId == userId;
+      return bitacora.autorId == userId.toString();
     }
     
     // SST puede editar cualquiera
