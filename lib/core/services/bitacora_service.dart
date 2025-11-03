@@ -18,39 +18,44 @@ class BitacoraService {
     Map<String, dynamic>? filters,
   }) async {
     final response = await _apiService.get(
-      '/bitacoras',
-      queryParameters: {...?filters, 'obraId': obraId},
+      '/obras/$obraId/bitacoras',
+      queryParameters: filters,
     );
-    final data = response.data as List;
+    final responseData = response.data;
+    final data = responseData['data'] as List;
     return data.map((json) => Bitacora.fromJson(json)).toList();
   }
 
   /// Obtiene una bitácora específica
-  Future<Bitacora> getBitacora(String bitacoraId) async {
-    final response = await _apiService.get('/bitacoras/$bitacoraId');
-    return Bitacora.fromJson(response.data);
+  Future<Bitacora> getBitacora(String obraId, String bitacoraId) async {
+    final response = await _apiService.get('/obras/$obraId/bitacoras/$bitacoraId');
+    final responseData = response.data;
+    return Bitacora.fromJson(responseData['data']);
   }
 
   /// Crea una nueva bitácora
-  Future<Bitacora> createBitacora(Map<String, dynamic> data) async {
-    final response = await _apiService.post('/bitacoras', data: data);
-    return Bitacora.fromJson(response.data);
+  Future<Bitacora> createBitacora(String obraId, Map<String, dynamic> data) async {
+    final response = await _apiService.post('/obras/$obraId/bitacoras', data: data);
+    final responseData = response.data;
+    return Bitacora.fromJson(responseData['data']);
   }
 
   /// Actualiza una bitácora
   Future<Bitacora> updateBitacora(
+    String obraId,
     String bitacoraId,
     Map<String, dynamic> data,
   ) async {
     final response = await _apiService.patch(
-      '/bitacoras/$bitacoraId',
+      '/obras/$obraId/bitacoras/$bitacoraId',
       data: data,
     );
-    return Bitacora.fromJson(response.data);
+    final responseData = response.data;
+    return Bitacora.fromJson(responseData['data']);
   }
 
   /// Elimina una bitácora
-  Future<void> deleteBitacora(String bitacoraId) async {
-    await _apiService.delete('/bitacoras/$bitacoraId');
+  Future<void> deleteBitacora(String obraId, String bitacoraId) async {
+    await _apiService.delete('/obras/$obraId/bitacoras/$bitacoraId');
   }
 }

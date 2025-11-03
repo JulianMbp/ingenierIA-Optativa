@@ -80,13 +80,23 @@ class _AsistenciasScreenState extends ConsumerState<AsistenciasScreen> {
 
   Future<void> _marcarAsistencia(String estado) async {
     try {
+      final authState = ref.read(authProvider);
+      final obraId = authState.obraActual?.id;
+      final usuarioId = authState.user?.id;
+
+      if (obraId == null || usuarioId == null) return;
+
       final asistenciaService = ref.read(asistenciaServiceProvider);
+      final hoy = DateTime.now();
       final data = {
-        'fecha': DateTime.now().toIso8601String(),
+        'obra_id': obraId,
+        'usuario_id': usuarioId,
+        'fecha': '${hoy.year}-${hoy.month.toString().padLeft(2, '0')}-${hoy.day.toString().padLeft(2, '0')}',
         'estado': estado,
+        'observaciones': null,
       };
 
-      await asistenciaService.createAsistencia(data);
+      await asistenciaService.createAsistencia(obraId, data);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -149,10 +159,11 @@ class _AsistenciasScreenState extends ConsumerState<AsistenciasScreen> {
                         color: _getEstadoColor(asistenciaHoy!.estado),
                       ),
                     ),
-                    Text(
-                      DateFormat('HH:mm').format(asistenciaHoy!.createdAt),
-                      style: const TextStyle(color: Colors.grey),
-                    ),
+                    if (asistenciaHoy!.createdAt != null)
+                      Text(
+                        DateFormat('HH:mm').format(asistenciaHoy!.createdAt!),
+                        style: const TextStyle(color: Colors.grey),
+                      ),
                   ],
                 ),
               ],

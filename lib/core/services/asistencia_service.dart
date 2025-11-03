@@ -18,10 +18,11 @@ class AsistenciaService {
     Map<String, dynamic>? filters,
   }) async {
     final response = await _apiService.get(
-      '/asistencias',
-      queryParameters: {...?filters, 'obraId': obraId},
+      '/obras/$obraId/asistencias',
+      queryParameters: filters,
     );
-    final data = response.data as List;
+    final responseData = response.data;
+    final data = responseData['data'] as List;
     return data.map((json) => Asistencia.fromJson(json)).toList();
   }
 
@@ -38,38 +39,43 @@ class AsistenciaService {
           'fecha': fecha,
         },
       );
-      return Asistencia.fromJson(response.data);
+      final responseData = response.data;
+      return Asistencia.fromJson(responseData['data']);
     } catch (e) {
       return null; // No hay asistencia registrada hoy
     }
   }
 
   /// Obtiene una asistencia específica
-  Future<Asistencia> getAsistencia(String asistenciaId) async {
-    final response = await _apiService.get('/asistencias/$asistenciaId');
-    return Asistencia.fromJson(response.data);
+  Future<Asistencia> getAsistencia(String obraId, String asistenciaId) async {
+    final response = await _apiService.get('/obras/$obraId/asistencias/$asistenciaId');
+    final responseData = response.data;
+    return Asistencia.fromJson(responseData['data']);
   }
 
   /// Crea una nueva asistencia
-  Future<Asistencia> createAsistencia(Map<String, dynamic> data) async {
-    final response = await _apiService.post('/asistencias', data: data);
-    return Asistencia.fromJson(response.data);
+  Future<Asistencia> createAsistencia(String obraId, Map<String, dynamic> data) async {
+    final response = await _apiService.post('/obras/$obraId/asistencias', data: data);
+    final responseData = response.data;
+    return Asistencia.fromJson(responseData['data']);
   }
 
   /// Actualiza una asistencia
   Future<Asistencia> updateAsistencia(
+    String obraId,
     String asistenciaId,
     Map<String, dynamic> data,
   ) async {
     final response = await _apiService.patch(
-      '/asistencias/$asistenciaId',
+      '/obras/$obraId/asistencias/$asistenciaId',
       data: data,
     );
-    return Asistencia.fromJson(response.data);
+    final responseData = response.data;
+    return Asistencia.fromJson(responseData['data']);
   }
 
   /// Elimina una asistencia
-  Future<void> deleteAsistencia(String asistenciaId) async {
-    await _apiService.delete('/asistencias/$asistenciaId');
+  Future<void> deleteAsistencia(String obraId, String asistenciaId) async {
+    await _apiService.delete('/obras/$obraId/asistencias/$asistenciaId');
   }
 }

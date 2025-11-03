@@ -69,19 +69,10 @@ class _MaterialesScreenState extends ConsumerState<MaterialesScreen> {
   Future<void> _showMaterialDialog({model.Material? material}) async {
     final isEdit = material != null;
     final nombreController = TextEditingController(text: material?.nombre ?? '');
-    final descripcionController = TextEditingController(text: material?.descripcion ?? '');
-    final cantidadController = TextEditingController(
-      text: material?.cantidad.toString() ?? '',
-    );
-    final cantidadDisponibleController = TextEditingController(
-      text: material?.cantidadDisponible.toString() ?? '',
-    );
-    final precioController = TextEditingController(
-      text: material?.precioUnitario.toString() ?? '',
-    );
-    final unidadMedidaController = TextEditingController(
-      text: material?.unidadMedida ?? '',
-    );
+    final categoriaController = TextEditingController(text: material?.categoria ?? '');
+    final cantidadController = TextEditingController(text: material?.cantidad ?? '');
+    final unidadController = TextEditingController(text: material?.unidad ?? '');
+    final proveedorController = TextEditingController(text: material?.proveedor ?? '');
 
     final result = await showDialog<bool>(
       context: context,
@@ -93,36 +84,27 @@ class _MaterialesScreenState extends ConsumerState<MaterialesScreen> {
             children: [
               TextField(
                 controller: nombreController,
-                decoration: const InputDecoration(labelText: 'Nombre'),
+                decoration: const InputDecoration(labelText: 'Nombre *'),
               ),
               const SizedBox(height: 8),
               TextField(
-                controller: descripcionController,
-                decoration: const InputDecoration(labelText: 'Descripción'),
-                maxLines: 2,
+                controller: categoriaController,
+                decoration: const InputDecoration(labelText: 'Categoría'),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: cantidadController,
                 decoration: const InputDecoration(labelText: 'Cantidad'),
-                keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 8),
               TextField(
-                controller: cantidadDisponibleController,
-                decoration: const InputDecoration(labelText: 'Cantidad Disponible'),
-                keyboardType: TextInputType.number,
+                controller: unidadController,
+                decoration: const InputDecoration(labelText: 'Unidad (ej: m3, kg, unidad)'),
               ),
               const SizedBox(height: 8),
               TextField(
-                controller: precioController,
-                decoration: const InputDecoration(labelText: 'Precio Unitario'),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: unidadMedidaController,
-                decoration: const InputDecoration(labelText: 'Unidad de Medida'),
+                controller: proveedorController,
+                decoration: const InputDecoration(labelText: 'Proveedor'),
               ),
             ],
           ),
@@ -143,11 +125,10 @@ class _MaterialesScreenState extends ConsumerState<MaterialesScreen> {
                 final materialService = ref.read(materialServiceProvider);
                 final data = {
                   'nombre': nombreController.text,
-                  'descripcion': descripcionController.text,
-                  'cantidad': int.parse(cantidadController.text),
-                  'cantidadDisponible': int.parse(cantidadDisponibleController.text),
-                  'precioUnitario': double.parse(precioController.text),
-                  'unidadMedida': unidadMedidaController.text,
+                  'categoria': categoriaController.text.isNotEmpty ? categoriaController.text : null,
+                  'cantidad': cantidadController.text.isNotEmpty ? cantidadController.text : null,
+                  'unidad': unidadController.text.isNotEmpty ? unidadController.text : null,
+                  'proveedor': proveedorController.text.isNotEmpty ? proveedorController.text : null,
                 };
 
                 if (isEdit) {
@@ -298,19 +279,25 @@ class _MaterialesScreenState extends ConsumerState<MaterialesScreen> {
                                     subtitle: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        if (material.descripcion != null)
-                                          Text(material.descripcion!),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Disponible: ${material.cantidadDisponible} / ${material.cantidad} ${material.unidadMedida}',
-                                        ),
-                                        Text(
-                                          'Precio: \$${material.precioUnitario.toStringAsFixed(2)} | Total: \$${material.valorTotal.toStringAsFixed(2)}',
-                                          style: TextStyle(
-                                            color: Colors.green.shade700,
-                                            fontWeight: FontWeight.w500,
+                                        if (material.categoria != null)
+                                          Text(
+                                            'Categoría: ${material.categoria}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                            ),
                                           ),
-                                        ),
+                                        const SizedBox(height: 4),
+                                        if (material.cantidad != null && material.unidad != null)
+                                          Text(
+                                            'Cantidad: ${material.cantidad} ${material.unidad}',
+                                          ),
+                                        if (material.proveedor != null)
+                                          Text(
+                                            'Proveedor: ${material.proveedor}',
+                                            style: TextStyle(
+                                              color: Colors.blue.shade700,
+                                            ),
+                                          ),
                                       ],
                                     ),
                                     trailing: canEdit

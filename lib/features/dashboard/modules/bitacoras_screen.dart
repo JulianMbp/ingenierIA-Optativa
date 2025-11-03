@@ -92,7 +92,7 @@ class _BitacorasScreenState extends ConsumerState<BitacorasScreen> {
       text: bitacora?.descripcion ?? '',
     );
     final avanceController = TextEditingController(
-      text: bitacora?.avancePorcentaje.toString() ?? '',
+      text: bitacora?.avancePorcentajeInt.toString() ?? '',
     );
     DateTime selectedDate = bitacora?.fecha ?? DateTime.now();
 
@@ -164,20 +164,30 @@ class _BitacorasScreenState extends ConsumerState<BitacorasScreen> {
                     return;
                   }
 
+                  final authState = ref.read(authProvider);
+                  final obraId = authState.obraActual?.id;
+                  final usuarioId = authState.user?.id;
+
+                  if (obraId == null || usuarioId == null) return;
+
                   final bitacoraService = ref.read(bitacoraServiceProvider);
                   final data = {
+                    'obra_id': obraId,
+                    'usuario_id': usuarioId,
                     'descripcion': descripcionController.text,
-                    'avancePorcentaje': avance,
-                    'fecha': selectedDate.toIso8601String(),
+                    'avance_porcentaje': avance,
+                    'fecha': selectedDate.toIso8601String().split('T').first,
+                    'archivos': [],
                   };
 
                   if (isEdit) {
                     await bitacoraService.updateBitacora(
+                      obraId,
                       bitacora.id,
                       data,
                     );
                   } else {
-                    await bitacoraService.createBitacora(data);
+                    await bitacoraService.createBitacora(obraId, data);
                   }
 
                   if (context.mounted) {
@@ -225,8 +235,13 @@ class _BitacorasScreenState extends ConsumerState<BitacorasScreen> {
 
     if (confirmed == true) {
       try {
+        final authState = ref.read(authProvider);
+        final obraId = authState.obraActual?.id;
+        
+        if (obraId == null) return;
+
         final bitacoraService = ref.read(bitacoraServiceProvider);
-        await bitacoraService.deleteBitacora(bitacora.id);
+        await bitacoraService.deleteBitacora(obraId, bitacora.id);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -323,19 +338,19 @@ class _BitacorasScreenState extends ConsumerState<BitacorasScreen> {
                                           children: [
                                             Expanded(
                                               child: LinearProgressIndicator(
-                                                value: bitacora.avancePorcentaje / 100,
+                                                value: bitacora.avancePorcentajeInt / 100,
                                                 backgroundColor: Colors.grey.shade300,
                                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                                  _getProgressColor(bitacora.avancePorcentaje),
+                                                  _getProgressColor(bitacora.avancePorcentajeInt),
                                                 ),
                                               ),
                                             ),
                                             const SizedBox(width: 8),
                                             Text(
-                                              '${bitacora.avancePorcentaje}%',
+                                              '${bitacora.avancePorcentajeInt}%',
                                               style: TextStyle(
                                                 color: _getProgressColor(
-                                                  bitacora.avancePorcentaje,
+                                                  bitacora.avancePorcentajeInt,
                                                 ),
                                                 fontWeight: FontWeight.bold,
                                               ),

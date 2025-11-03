@@ -21,7 +21,10 @@ class MaterialService {
       '/obras/$obraId/materiales',
       queryParameters: filters,
     );
-    final data = response.data as List;
+    
+    // La API devuelve {success, data, message}
+    final responseData = response.data;
+    final data = responseData['data'] as List;
     return data.map((json) => Material.fromJson(json)).toList();
   }
 
@@ -30,7 +33,8 @@ class MaterialService {
     final response = await _apiService.get(
       '/obras/$obraId/materiales/$materialId',
     );
-    return Material.fromJson(response.data);
+    final responseData = response.data;
+    return Material.fromJson(responseData['data']);
   }
 
   /// Crea un nuevo material
@@ -42,7 +46,8 @@ class MaterialService {
       '/obras/$obraId/materiales',
       data: data,
     );
-    return Material.fromJson(response.data);
+    final responseData = response.data;
+    return Material.fromJson(responseData['data']);
   }
 
   /// Actualiza un material
@@ -55,7 +60,8 @@ class MaterialService {
       '/obras/$obraId/materiales/$materialId',
       data: data,
     );
-    return Material.fromJson(response.data);
+    final responseData = response.data;
+    return Material.fromJson(responseData['data']);
   }
 
   /// Elimina un material
