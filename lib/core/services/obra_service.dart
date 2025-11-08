@@ -15,8 +15,46 @@ class ObraService {
   /// Get authenticated user's projects
   Future<List<Obra>> getMyObras() async {
     final response = await _apiService.get('/auth/my-obras');
-    final data = response.data as List;
-    return data.map((json) => Obra.fromJson(json)).toList();
+    dynamic responseData = response.data;
+    
+    List<dynamic> obrasList = [];
+    
+    // El endpoint puede devolver directamente un array o un objeto con 'obra' dentro
+    if (responseData is List) {
+      obrasList = responseData;
+    } else if (responseData is Map<String, dynamic>) {
+      // Si viene como objeto, puede estar en 'data' o directamente en el objeto
+      if (responseData.containsKey('data') && responseData['data'] is List) {
+        obrasList = responseData['data'] as List;
+      } else {
+        // Intentar extraer 'obra' de cada elemento si viene como array de objetos con 'obra'
+        obrasList = responseData.values.where((v) => v is List).expand((v) => v as List).toList();
+      }
+    }
+    
+    // Si aún no tenemos obras, intentar parsear cada elemento
+    if (obrasList.isEmpty && responseData is List) {
+      obrasList = responseData;
+    }
+    
+    // Si el formato es array de objetos con 'obra' dentro (como en postman)
+    if (obrasList.isNotEmpty && obrasList.first is Map<String, dynamic>) {
+      final firstItem = obrasList.first as Map<String, dynamic>;
+      if (firstItem.containsKey('obra')) {
+        // El formato es: [{"obra": {...}, "roleName": "..."}]
+        return obrasList.map((item) {
+          final obraData = item['obra'] as Map<String, dynamic>;
+          // Agregar roleName al objeto obra si está disponible
+          if (item.containsKey('roleName')) {
+            obraData['roleName'] = item['roleName'];
+          }
+          return Obra.fromJson(obraData);
+        }).toList();
+      }
+    }
+    
+    // Formato estándar: array directo de obras
+    return obrasList.map((json) => Obra.fromJson(json as Map<String, dynamic>)).toList();
   }
 
   /// Switch current user's project and get new token

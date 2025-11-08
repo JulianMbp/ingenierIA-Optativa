@@ -6,6 +6,7 @@ import '../../config/theme.dart';
 import '../../core/models/role.dart';
 import '../../core/providers/obra_progress_provider.dart';
 import '../../core/widgets/glass_container.dart';
+import '../../core/widgets/offline_banner.dart';
 import '../auth/auth_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -39,8 +40,14 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
         child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
+          child: Column(
+            children: [
+              // Banner de estado offline
+              const OfflineBanner(),
+              // Contenido principal
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
               // App Bar
               SliverAppBar(
                 expandedHeight: 120,
@@ -178,6 +185,9 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -189,6 +199,12 @@ class DashboardScreen extends ConsumerWidget {
     switch (role) {
       case RoleType.adminGeneral:
         return [
+          ModuleItem(
+            title: 'Chat con IA',
+            icon: Icons.auto_awesome,
+            color: AppTheme.iosOrange,
+            route: '/modules/chat-ia',
+          ),
           ModuleItem(
             title: 'Tareas',
             icon: Icons.task_outlined,
@@ -236,6 +252,12 @@ class DashboardScreen extends ConsumerWidget {
       case RoleType.adminObra:
         return [
           ModuleItem(
+            title: 'Chat con IA',
+            icon: Icons.auto_awesome,
+            color: AppTheme.iosOrange,
+            route: '/modules/chat-ia',
+          ),
+          ModuleItem(
             title: 'Tareas',
             icon: Icons.task_outlined,
             color: AppTheme.iosTeal,
@@ -264,6 +286,12 @@ class DashboardScreen extends ConsumerWidget {
       case RoleType.obrero:
         return [
           ModuleItem(
+            title: 'Chat con IA',
+            icon: Icons.auto_awesome,
+            color: AppTheme.iosOrange,
+            route: '/modules/chat-ia',
+          ),
+          ModuleItem(
             title: 'Asistencias',
             icon: Icons.check_circle_outline,
             color: AppTheme.iosGreen,
@@ -280,6 +308,12 @@ class DashboardScreen extends ConsumerWidget {
       case RoleType.rrhh:
         return [
           ModuleItem(
+            title: 'Chat con IA',
+            icon: Icons.auto_awesome,
+            color: AppTheme.iosOrange,
+            route: '/modules/chat-ia',
+          ),
+          ModuleItem(
             title: 'Asistencias',
             icon: Icons.check_circle_outline,
             color: AppTheme.iosGreen,
@@ -289,6 +323,12 @@ class DashboardScreen extends ConsumerWidget {
 
       case RoleType.sst:
         return [
+          ModuleItem(
+            title: 'Chat con IA',
+            icon: Icons.auto_awesome,
+            color: AppTheme.iosOrange,
+            route: '/modules/chat-ia',
+          ),
           ModuleItem(
             title: 'Documentos',
             icon: Icons.folder_outlined,

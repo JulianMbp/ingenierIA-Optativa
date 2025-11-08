@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/models/tarea.dart';
 import '../../../core/providers/obra_progress_provider.dart';
 import '../../../core/services/tarea_service.dart';
+import '../../../core/widgets/offline_banner.dart';
 import '../../auth/auth_provider.dart';
 
 class TareasScreen extends ConsumerStatefulWidget {
@@ -142,6 +143,8 @@ class _TareasScreenState extends ConsumerState<TareasScreen> {
       ),
       body: Column(
         children: [
+          // Banner de estado offline
+          const OfflineBanner(),
           // General progress bar
           Container(
             padding: const EdgeInsets.all(16),

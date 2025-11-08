@@ -10,6 +10,7 @@ import '../../../core/services/bitacora_service.dart';
 import '../../../core/services/tarea_service.dart';
 import '../../../core/widgets/glass_container.dart';
 import '../../auth/auth_provider.dart';
+import 'generar_informe_ia_screen.dart';
 
 class BitacorasScreen extends ConsumerStatefulWidget {
   const BitacorasScreen({super.key});
@@ -373,16 +374,136 @@ class _BitacorasScreenState extends ConsumerState<BitacorasScreen> {
                         ],
                       ),
                     )
-                  : bitacoras.isEmpty
-                      ? const Center(
-                          child: Text('No hay bitácoras registradas'),
-                        )
-                      : RefreshIndicator(
-                          onRefresh: _loadBitacoras,
-                          child: ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: bitacoras.length,
-                            itemBuilder: (context, index) {
+                  : RefreshIndicator(
+                      onRefresh: _loadBitacoras,
+                      child: Column(
+                        children: [
+                          // Banner destacado para generar informe con IA
+                          Container(
+                            margin: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.iosOrange,
+                                  AppTheme.iosOrange.withOpacity(0.8),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.iosOrange.withOpacity(0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.auto_awesome,
+                                    color: Colors.white,
+                                    size: 32,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Genera tu Bitácora con IA',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Crea informes profesionales automáticamente',
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.9),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const GenerarInformeIaScreen(),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.arrow_forward),
+                                  label: const Text('Generar'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: AppTheme.iosOrange,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Lista de bitácoras
+                          Expanded(
+                            child: bitacoras.isEmpty
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.description_outlined,
+                                          size: 64,
+                                          color: Colors.grey[400],
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'No hay bitácoras registradas',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Crea una nueva o genera un informe con IA',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey[500],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    itemCount: bitacoras.length,
+                                    itemBuilder: (context, index) {
                               final bitacora = bitacoras[index];
                               final canEdit = _canEdit(bitacora);
                               
@@ -466,18 +587,73 @@ class _BitacorasScreenState extends ConsumerState<BitacorasScreen> {
                                   ),
                                 ),
                               );
-                            },
+                                    },
+                                  ),
                           ),
-                        ),
+                        ],
+                      ),
+                    ),
         ),
       ),
       floatingActionButton: canCreate
-          ? FloatingActionButton(
-              onPressed: () => _showBitacoraDialog(),
-              backgroundColor: AppTheme.iosOrange,
-              child: const Icon(Icons.add),
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // Botón de IA más grande y visible
+                FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const GenerarInformeIaScreen(),
+                      ),
+                    );
+                  },
+                  backgroundColor: AppTheme.iosOrange,
+                  foregroundColor: Colors.white,
+                  icon: const Icon(Icons.auto_awesome, size: 28),
+                  label: const Text(
+                    'Generar con IA',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  elevation: 6,
+                ),
+                const SizedBox(height: 16),
+                // Botón para crear bitácora manual
+                FloatingActionButton(
+                  onPressed: () => _showBitacoraDialog(),
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppTheme.iosOrange,
+                  child: const Icon(Icons.add),
+                  elevation: 4,
+                ),
+              ],
             )
-          : null,
+          : FloatingActionButton.extended(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const GenerarInformeIaScreen(),
+                  ),
+                );
+              },
+              backgroundColor: AppTheme.iosOrange,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.auto_awesome, size: 28),
+              label: const Text(
+                'Generar con IA',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              elevation: 6,
+            ),
     );
   }
 

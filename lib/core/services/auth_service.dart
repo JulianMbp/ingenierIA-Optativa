@@ -6,6 +6,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import '../../config/api_config.dart';
 import '../models/jwt_payload.dart';
 import '../models/user.dart';
+import '../repositories/auth_repository.dart';
 import 'api_service.dart';
 import 'storage_service.dart';
 
@@ -13,14 +14,16 @@ final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(
     ref.read(apiServiceProvider),
     ref.read(storageServiceProvider),
+    ref.read(authRepositoryProvider),
   );
 });
 
 class AuthService {
   final ApiService _apiService;
   final StorageService _storageService;
+  final AuthRepository _authRepository;
 
-  AuthService(this._apiService, this._storageService);
+  AuthService(this._apiService, this._storageService, this._authRepository);
 
   // Login
   Future<Map<String, dynamic>> login(String email, String password) async {
@@ -41,7 +44,7 @@ class AuthService {
       final tokenExpires = response.data['tokenExpires'];
       final user = User.fromJson(response.data['user']);
 
-      // Save tokens and user data
+      // Save tokens and user data en almacenamiento seguro
       await _storageService.saveToken(token);
       await _storageService.saveUserData(jsonEncode(user.toJson()));
 
@@ -60,10 +63,12 @@ class AuthService {
   // Get current user from storage
   Future<User?> getCurrentUser() async {
     try {
+      // Intentar desde secure storage
       final userData = await _storageService.getUserData();
       if (userData != null) {
         return User.fromJson(jsonDecode(userData));
       }
+      
       return null;
     } catch (e) {
       return null;
@@ -120,6 +125,7 @@ class AuthService {
   // Logout
   Future<void> logout() async {
     await _storageService.clearAll();
+    await _authRepository.clearUser();
   }
 
   // Refresh user data

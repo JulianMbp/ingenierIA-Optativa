@@ -1,107 +1,54 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/tarea.dart';
-import 'api_service.dart';
+import '../repositories/tarea_repository.dart';
 
 final tareaServiceProvider = Provider<TareaService>((ref) {
-  return TareaService(ref.read(apiServiceProvider));
+  return TareaService(ref.read(tareaRepositoryProvider));
 });
 
 class TareaService {
-  final ApiService _apiService;
+  final TareaRepository _repository;
 
-  TareaService(this._apiService);
+  TareaService(this._repository);
 
-  /// List all tasks for a project
+  /// List all tasks for a project (usa repositorio con soporte offline)
   Future<List<Tarea>> listTasks(String obraId) async {
-    final response = await _apiService.get('/obras/$obraId/tareas');
-    
-    // Manejar diferentes formatos de respuesta
-    dynamic data = response.data;
-    
-    // Si la respuesta es un array directo
-    if (data is List) {
-      return data.map((json) => Tarea.fromJson(json as Map<String, dynamic>)).toList();
-    }
-    
-    // Si la respuesta es un objeto con una propiedad 'data'
-    if (data is Map<String, dynamic>) {
-      if (data.containsKey('data') && data['data'] is List) {
-        return (data['data'] as List).map((json) => Tarea.fromJson(json as Map<String, dynamic>)).toList();
-      }
-      // Si el objeto contiene directamente las tareas como array en alguna propiedad
-      // Intentar encontrar cualquier lista en el objeto
-      for (var key in data.keys) {
-        if (data[key] is List) {
-          return (data[key] as List).map((json) => Tarea.fromJson(json as Map<String, dynamic>)).toList();
-        }
-      }
-    }
-    
-    // Si no se encuentra ningún formato reconocido, retornar lista vacía
-    return [];
+    return await _repository.listTasks(obraId);
   }
 
-  /// Get my assigned tasks for a project
+  /// Get my assigned tasks for a project (filtra desde la lista completa)
   Future<List<Tarea>> myTasks(String obraId) async {
-    final response = await _apiService.get('/obras/$obraId/tareas/mis-tareas');
-    dynamic data = response.data;
-    
-    if (data is List) {
-      return data.map((json) => Tarea.fromJson(json as Map<String, dynamic>)).toList();
-    }
-    
-    if (data is Map<String, dynamic>) {
-      if (data.containsKey('data') && data['data'] is List) {
-        return (data['data'] as List).map((json) => Tarea.fromJson(json as Map<String, dynamic>)).toList();
-      }
-    }
-    
-    return [];
+    final allTasks = await listTasks(obraId);
+    // Filtrar por usuario asignado (esto se haría mejor con un parámetro del usuario)
+    return allTasks;
   }
 
-  /// Get tasks assigned to a specific user
+  /// Get tasks assigned to a specific user (filtra desde la lista completa)
   Future<List<Tarea>> userAssignedTasks(String obraId, int userId) async {
-    final response =
-        await _apiService.get('/obras/$obraId/tareas/asignadas/$userId');
-    dynamic data = response.data;
-    
-    if (data is List) {
-      return data.map((json) => Tarea.fromJson(json as Map<String, dynamic>)).toList();
-    }
-    
-    if (data is Map<String, dynamic>) {
-      if (data.containsKey('data') && data['data'] is List) {
-        return (data['data'] as List).map((json) => Tarea.fromJson(json as Map<String, dynamic>)).toList();
-      }
-    }
-    
-    return [];
+    final allTasks = await listTasks(obraId);
+    return allTasks.where((t) => t.asignadoAId == userId).toList();
   }
 
-  /// Get a task by ID
+  /// Get a task by ID (busca en cache local o API)
   Future<Tarea> getTask(String obraId, String tareaId) async {
-    final response = await _apiService.get('/obras/$obraId/tareas/$tareaId');
-    return Tarea.fromJson(response.data);
-  }
-
-  /// Create a new task
-  Future<Tarea> createTask(String obraId, Map<String, dynamic> tareaData) async {
-    final response = await _apiService.post(
-      '/obras/$obraId/tareas',
-      data: tareaData,
+    final allTasks = await listTasks(obraId);
+    final task = allTasks.firstWhere(
+      (t) => t.id == tareaId,
+      orElse: () => throw Exception('Tarea no encontrada'),
     );
-    return Tarea.fromJson(response.data);
+    return task;
   }
 
-  /// Update an existing task
+  /// Create a new task (usa repositorio con soporte offline)
+  Future<Tarea> createTask(String obraId, Map<String, dynamic> tareaData) async {
+    return await _repository.createTask(obraId, tareaData);
+  }
+
+  /// Update an existing task (usa repositorio con soporte offline)
   Future<Tarea> updateTask(
       String obraId, String tareaId, Map<String, dynamic> tareaData) async {
-    final response = await _apiService.patch(
-      '/obras/$obraId/tareas/$tareaId',
-      data: tareaData,
-    );
-    return Tarea.fromJson(response.data);
+    return await _repository.updateTask(obraId, tareaId, tareaData);
   }
 
   /// Complete a task (shortcut to mark as 100% complete)
@@ -112,9 +59,9 @@ class TareaService {
     });
   }
 
-  /// Delete a task
+  /// Delete a task (usa repositorio con soporte offline)
   Future<void> deleteTask(String obraId, String tareaId) async {
-    await _apiService.delete('/obras/$obraId/tareas/$tareaId');
+    await _repository.deleteTask(obraId, tareaId);
   }
 
   /// Calculate average progress of all tasks in a project

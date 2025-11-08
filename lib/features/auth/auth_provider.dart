@@ -81,14 +81,19 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final result = await _authService.login(email, password);
+      
+      // Actualizar estado inmediatamente después del login
+      // Esto permitirá que el router redirija inmediatamente
       state = state.copyWith(
         user: result['user'],
         token: result['token'],
         isLoading: false,
+        misObras: const [], // Inicializar con lista vacía para permitir navegación
       );
       
       // Cargar obras del usuario en segundo plano
       // No esperamos a que termine para no bloquear el login
+      // El router redirigirá a /select-obra mientras se cargan las obras
       loadMyObras().catchError((e) {
         // Solo loguear el error, no bloquear el login
         print('Error cargando obras: $e');
@@ -108,17 +113,29 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> loadMyObras() async {
     try {
       final obras = await _obraService.getMyObras();
+      print('Obras cargadas: ${obras.length}');
+      
       state = state.copyWith(misObras: obras);
       
       // Si solo hay una obra, seleccionarla automáticamente
       if (obras.length == 1) {
-        await selectObra(obras.first.id);
+        try {
+          print('Seleccionando obra automáticamente: ${obras.first.id}');
+          await selectObra(obras.first.id);
+        } catch (e) {
+          // Si falla la selección automática, no bloquear
+          print('Error seleccionando obra automáticamente: $e');
+        }
+      } else if (obras.isEmpty) {
+        print('No hay obras disponibles para el usuario');
       }
     } catch (e) {
       // No actualizamos el estado con error aquí
       // para no interferir con el flujo de login
       print('Error al cargar obras: $e');
-      rethrow;
+      // Asegurar que el estado tenga al menos una lista vacía
+      // para que el router pueda navegar correctamente
+      state = state.copyWith(misObras: []);
     }
   }
 

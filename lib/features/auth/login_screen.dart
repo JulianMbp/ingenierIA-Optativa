@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/widgets/glass_container.dart';
 import '../../core/widgets/input_field.dart';
@@ -37,6 +38,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (success) {
         // El router se encargará de la navegación automática
         // basado en el estado de autenticación
+        // Forzar una actualización del router después del login
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            final router = GoRouter.of(context);
+            router.refresh();
+          }
+        });
       } else {
         final error = ref.read(authProvider).error;
         ScaffoldMessenger.of(context).showSnackBar(
