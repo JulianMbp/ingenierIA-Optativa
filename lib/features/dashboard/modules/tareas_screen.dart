@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/models/tarea.dart';
+import '../../../core/providers/obra_progress_provider.dart';
 import '../../../core/services/tarea_service.dart';
 import '../../auth/auth_provider.dart';
 
@@ -77,7 +78,11 @@ class _TareasScreenState extends ConsumerState<TareasScreen> {
 
   /// Calcula el progreso de la obra directamente desde las tareas ya cargadas
   /// Evita hacer llamadas adicionales al API
+  /// También actualiza el provider compartido para que el dashboard se actualice
   void _calcularProgresoDesdeTareas(List<Tarea> tareas) {
+    // Actualizar el provider compartido para que el dashboard se actualice automáticamente
+    ref.read(obraProgressProvider.notifier).updateFromTareas(tareas);
+    
     if (tareas.isEmpty) {
       setState(() {
         _progresoGeneral = 0.0;

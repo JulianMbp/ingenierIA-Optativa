@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../config/theme.dart';
 import '../../core/models/role.dart';
-import '../../core/services/tarea_service.dart';
+import '../../core/providers/obra_progress_provider.dart';
 import '../../core/widgets/glass_container.dart';
 import '../auth/auth_provider.dart';
 
@@ -366,87 +366,35 @@ class _ModuleCard extends StatelessWidget {
 }
 
 // Project progress bar widget
-class _ObraProgressCard extends ConsumerStatefulWidget {
+class _ObraProgressCard extends ConsumerWidget {
   final String? obraId;
 
   const _ObraProgressCard({this.obraId});
 
   @override
-  ConsumerState<_ObraProgressCard> createState() => _ObraProgressCardState();
-}
-
-class _ObraProgressCardState extends ConsumerState<_ObraProgressCard> {
-  double _progreso = 0.0;
-  bool _isLoading = true;
-  int _totalTareas = 0;
-  int _tareasCompletadas = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _cargarProgreso();
-  }
-
-  @override
-  void didUpdateWidget(_ObraProgressCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.obraId != oldWidget.obraId) {
-      _cargarProgreso();
-    }
-  }
-
-  Future<void> _cargarProgreso() async {
-    if (widget.obraId == null) {
-      setState(() {
-        _progreso = 0.0;
-        _isLoading = false;
-      });
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      final tareaService = ref.read(tareaServiceProvider);
-      final tareas = await tareaService.listTasks(widget.obraId!);
-
-      if (tareas.isEmpty) {
-        setState(() {
-          _progreso = 0.0;
-          _totalTareas = 0;
-          _tareasCompletadas = 0;
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final completadas = tareas.where((t) => t.isCompletada).length;
-      final suma = tareas.fold<int>(0, (sum, t) => sum + t.progresosPorcentaje);
-
-      setState(() {
-        _progreso = suma / tareas.length;
-        _totalTareas = tareas.length;
-        _tareasCompletadas = completadas;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _progreso = 0.0;
-        _totalTareas = 0;
-        _tareasCompletadas = 0;
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Escuchar cambios en el progreso de la obra
+    final progressState = ref.watch(obraProgressProvider);
     final authState = ref.watch(authProvider);
     final obraActual = authState.obraActual;
+
+    // Cargar progreso cuando cambie el obraId o cuando se monte el widget
+    ref.listen<String?>(
+      authProvider.select((state) => state.obraActual?.id),
+      (previous, next) {
+        if (previous != next && next != null) {
+          // Cuando cambie la obra, refrescar el progreso
+          ref.read(obraProgressProvider.notifier).refresh();
+        }
+      },
+    );
 
     if (obraActual == null) {
       return const SizedBox.shrink();
     }
+
+    final progreso = progressState.progreso;
+    final isLoading = progressState.isLoading;
 
     return GlassContainer(
       blur: 15,
@@ -481,7 +429,7 @@ class _ObraProgressCardState extends ConsumerState<_ObraProgressCard> {
                   ],
                 ),
               ),
-              if (_isLoading)
+              if (isLoading)
                 const SizedBox(
                   width: 24,
                   height: 24,
@@ -494,21 +442,21 @@ class _ObraProgressCardState extends ConsumerState<_ObraProgressCard> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: _progreso < 30
+                    color: progreso < 30
                         ? Colors.red.withOpacity(0.2)
-                        : _progreso < 70
+                        : progreso < 70
                             ? Colors.orange.withOpacity(0.2)
                             : Colors.green.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '${_progreso.toStringAsFixed(0)}%',
+                    '${progreso.toStringAsFixed(0)}%',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: _progreso < 30
+                      color: progreso < 30
                           ? Colors.red
-                          : _progreso < 70
+                          : progreso < 70
                               ? Colors.orange
                               : Colors.green,
                     ),
@@ -520,13 +468,13 @@ class _ObraProgressCardState extends ConsumerState<_ObraProgressCard> {
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
-              value: _isLoading ? null : _progreso / 100,
+              value: isLoading ? null : progreso / 100,
               minHeight: 12,
               backgroundColor: Colors.grey[300],
               valueColor: AlwaysStoppedAnimation<Color>(
-                _progreso < 30
+                progreso < 30
                     ? Colors.red
-                    : _progreso < 70
+                    : progreso < 70
                         ? Colors.orange
                         : Colors.green,
               ),
@@ -541,14 +489,19 @@ class _ObraProgressCardState extends ConsumerState<_ObraProgressCard> {
                   Icon(Icons.task_alt, size: 16, color: Colors.grey[600]),
                   const SizedBox(width: 4),
                   Text(
-                    '$_tareasCompletadas/$_totalTareas tareas completadas',
+                    '${progressState.tareasCompletadas}/${progressState.totalTareas} tareas completadas',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
               TextButton.icon(
-                onPressed: () {
-                  context.push('/modules/tareas');
+                onPressed: () async {
+                  // Navegar a tareas y esperar a que regrese
+                  await context.push('/modules/tareas');
+                  // Cuando regrese, refrescar el progreso
+                  if (context.mounted) {
+                    ref.read(obraProgressProvider.notifier).refresh();
+                  }
                 },
                 icon: const Icon(Icons.arrow_forward, size: 16),
                 label: const Text('Ver tareas'),
