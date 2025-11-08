@@ -1,5 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../config/api_config.dart';
 import 'api_service.dart';
 import 'connectivity_service.dart';
 
@@ -51,6 +53,9 @@ class BitacoraAiService {
       final response = await _apiService.post(
         '/obras/$obraId/bitacoras/generar-informe-ia',
         data: body,
+        options: Options(
+          receiveTimeout: ApiConfig.aiReceiveTimeout,
+        ),
       );
 
       final responseData = response.data;
@@ -131,6 +136,9 @@ class BitacoraAiService {
       final response = await _apiService.post(
         '/obras/$obraId/bitacoras/chat',
         data: body,
+        options: Options(
+          receiveTimeout: ApiConfig.aiReceiveTimeout,
+        ),
       );
 
       final responseData = response.data;
