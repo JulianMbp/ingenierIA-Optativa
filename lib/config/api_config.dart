@@ -1,5 +1,28 @@
+/// Configuración de ambiente de la aplicación
+enum Environment {
+  development,
+  production,
+}
+
 class ApiConfig {
-  static const String baseUrl = 'https://ingenieria.julian-mbp.pro/api/v1';
+  // ⚠️ IMPORTANTE: Cambia esto a Environment.production para builds de producción
+  static const Environment _environment = Environment.development;
+  
+  // URLs de backend según ambiente
+  static const String _developmentUrl = 'https://ingenieria.julian-mbp.pro/api/v1';
+  static const String _productionUrl = 'https://ingenieria.julian-mbp.pro/api/v1'; // 🔴 CAMBIA ESTA URL por tu URL de producción
+  
+  // Selecciona la URL según el ambiente
+  static String get baseUrl {
+    switch (_environment) {
+      case Environment.development:
+        return _developmentUrl;
+      case Environment.production:
+        return _productionUrl;
+    }
+  }
+  
+  // Endpoints
   static const String loginEndpoint = '/auth/login';
   static const String profileEndpoint = '/auth/me';
   
@@ -8,4 +31,8 @@ class ApiConfig {
   static const Duration receiveTimeout = Duration(seconds: 30);
   
   static const Duration aiReceiveTimeout = Duration(seconds: 120);
+  
+  // Helper para saber si estamos en desarrollo
+  static bool get isDevelopment => _environment == Environment.development;
+  static bool get isProduction => _environment == Environment.production;
 }

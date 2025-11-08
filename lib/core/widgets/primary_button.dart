@@ -31,13 +31,13 @@ class PrimaryButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? AppTheme.iosBlue,
+          backgroundColor: backgroundColor ?? AppTheme.primaryBlue,
           foregroundColor: textColor ?? Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
-          disabledBackgroundColor: AppTheme.iosBlue.withOpacity(0.5),
+          disabledBackgroundColor: AppTheme.primaryBlue.withOpacity(0.5),
         ),
         child: isLoading
             ? const SizedBox(

@@ -7,8 +7,8 @@ class AppTheme {
     scaffoldBackgroundColor: const Color(0xFFF8F9FB),
     fontFamily: GoogleFonts.inter().fontFamily,
     colorScheme: const ColorScheme.light(
-      primary: Color(0xFF007AFF),
-      secondary: Color(0xFFE9ECEF),
+      primary: Color(0xFF2A527A), // Azul oscuro del logo
+      secondary: Color(0xFF308D9C), // Teal del logo
       surface: Colors.white,
       error: Color(0xFFFF3B30),
     ),
@@ -44,7 +44,11 @@ class AppTheme {
     ),
   );
 
-  // iOS Colors
+  // Colores del logo IngenierIA
+  static const Color primaryBlue = Color(0xFF2A527A); // Azul oscuro
+  static const Color primaryTeal = Color(0xFF308D9C); // Teal
+  
+  // iOS Colors (mantenidos para compatibilidad)
   static const Color iosBlue = Color(0xFF007AFF);
   static const Color iosGreen = Color(0xFF34C759);
   static const Color iosRed = Color(0xFFFF3B30);

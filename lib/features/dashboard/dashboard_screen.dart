@@ -230,12 +230,6 @@ class DashboardScreen extends ConsumerWidget {
             route: '/modules/asistencias',
           ),
           ModuleItem(
-            title: 'Presupuestos',
-            icon: Icons.attach_money_outlined,
-            color: AppTheme.iosPurple,
-            route: '/modules/presupuestos',
-          ),
-          ModuleItem(
             title: 'Documentos',
             icon: Icons.folder_outlined,
             color: AppTheme.iosPink,
@@ -274,12 +268,6 @@ class DashboardScreen extends ConsumerWidget {
             icon: Icons.note_alt_outlined,
             color: AppTheme.iosOrange,
             route: '/modules/bitacoras',
-          ),
-          ModuleItem(
-            title: 'Presupuestos',
-            icon: Icons.attach_money_outlined,
-            color: AppTheme.iosPurple,
-            route: '/modules/presupuestos',
           ),
         ];
 

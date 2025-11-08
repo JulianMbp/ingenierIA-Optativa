@@ -11,7 +11,6 @@ import '../features/dashboard/modules/chat_ia_screen.dart';
 import '../features/dashboard/modules/documentos_screen.dart';
 import '../features/dashboard/modules/logs_screen.dart';
 import '../features/dashboard/modules/materiales_screen.dart';
-import '../features/dashboard/modules/presupuestos_screen.dart';
 import '../features/dashboard/modules/tareas_screen.dart';
 import '../features/obras/select_obra_screen.dart';
 import '../features/profile/profile_screen.dart';
@@ -112,10 +111,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/modules/asistencias',
         builder: (context, state) => const AsistenciasScreen(),
-      ),
-      GoRoute(
-        path: '/modules/presupuestos',
-        builder: (context, state) => const PresupuestosScreen(),
       ),
       GoRoute(
         path: '/modules/documentos',

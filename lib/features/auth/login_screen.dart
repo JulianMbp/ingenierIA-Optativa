@@ -68,9 +68,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF007AFF),
-              const Color(0xFF5AC8FA),
-              const Color(0xFFAF52DE),
+              const Color(0xFF2A527A), // Azul oscuro del logo
+              const Color(0xFF308D9C), // Teal del logo
             ],
           ),
         ),
@@ -84,10 +83,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Logo/Title
-                    const Icon(
-                      Icons.engineering,
-                      size: 80,
-                      color: Colors.white,
+                    Image.asset(
+                      'assets/image.png',
+                      height: 120,
+                      width: 120,
+                      fit: BoxFit.contain,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -95,7 +95,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       style: Theme.of(context)
                           .textTheme
                           .displayLarge
-                          ?.copyWith(color: Colors.white),
+                          ?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -168,7 +171,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             onPressed: _handleLogin,
                             isLoading: authState.isLoading,
                             backgroundColor: Colors.white,
-                            textColor: const Color(0xFF007AFF),
+                            textColor: const Color(0xFF2A527A),
                           ),
                         ],
                       ),
