@@ -24,13 +24,22 @@ class Role {
   });
 
   factory Role.fromJson(Map<String, dynamic> json) {
+    // Helper para parsear int de forma segura
+    int _parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      if (value is double) return value.toInt();
+      return 0;
+    }
+
     return Role(
-      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
-      name: json['name'] ?? '',
-      descripcion: json['descripcion'],
-      type: _parseRoleType(json['name']),
-      createdAt: json['createdAt'],
-      updatedAt: json['updatedAt'],
+      id: _parseInt(json['id']),
+      name: json['name']?.toString() ?? '',
+      descripcion: json['descripcion']?.toString(),
+      type: _parseRoleType(json['name']?.toString()),
+      createdAt: json['createdAt']?.toString() ?? json['created_at']?.toString(),
+      updatedAt: json['updatedAt']?.toString() ?? json['updated_at']?.toString(),
     );
   }
 

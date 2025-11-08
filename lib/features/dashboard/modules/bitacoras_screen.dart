@@ -5,7 +5,9 @@ import 'package:intl/intl.dart';
 import '../../../config/theme.dart';
 import '../../../core/models/bitacora.dart';
 import '../../../core/models/role.dart';
+import '../../../core/models/tarea.dart';
 import '../../../core/services/bitacora_service.dart';
+import '../../../core/services/tarea_service.dart';
 import '../../../core/widgets/glass_container.dart';
 import '../../auth/auth_provider.dart';
 
@@ -72,7 +74,7 @@ class _BitacorasScreenState extends ConsumerState<BitacorasScreen> {
     final userRole = authState.user?.role.type;
     final userId = authState.user?.id;
     
-    // Admin General y Admin Obra pueden editar cualquier bitácora
+    // Admin General and Admin Obra can edit any work log
     if (userRole == RoleType.adminGeneral || userRole == RoleType.adminObra) {
       return true;
     }
@@ -95,6 +97,22 @@ class _BitacorasScreenState extends ConsumerState<BitacorasScreen> {
       text: bitacora?.avancePorcentajeInt.toString() ?? '',
     );
     DateTime selectedDate = bitacora?.fecha ?? DateTime.now();
+    List<Tarea> tareas = [];
+    List<String> tareasSeleccionadas = [];
+    bool cargandoTareas = true;
+
+    // Load project tasks
+    final authState = ref.read(authProvider);
+    final obraId = authState.obraActual?.id;
+    if (obraId != null) {
+      try {
+        final tareaService = ref.read(tareaServiceProvider);
+        tareas = await tareaService.listTasks(obraId);
+        cargandoTareas = false;
+      } catch (e) {
+        cargandoTareas = false;
+      }
+    }
 
     final result = await showDialog<bool>(
       context: context,
@@ -143,6 +161,38 @@ class _BitacorasScreenState extends ConsumerState<BitacorasScreen> {
                     }
                   },
                 ),
+                const Divider(),
+                const Text(
+                  'Marcar tareas como completadas:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                if (cargandoTareas)
+                  const CircularProgressIndicator()
+                else if (tareas.isEmpty)
+                  const Text('No hay tareas disponibles')
+                else
+                  ...tareas
+                      .where((t) => !t.isCompletada)
+                      .map(
+                        (tarea) => CheckboxListTile(
+                          title: Text(tarea.titulo),
+                          subtitle: Text(
+                            'Progreso: ${tarea.progresosPorcentaje}%',
+                          ),
+                          value: tareasSeleccionadas.contains(tarea.id),
+                          onChanged: (bool? value) {
+                            setState(() {
+                              if (value == true) {
+                                tareasSeleccionadas.add(tarea.id);
+                              } else {
+                                tareasSeleccionadas.remove(tarea.id);
+                              }
+                            });
+                          },
+                        ),
+                      )
+                      .toList(),
               ],
             ),
           ),
@@ -190,8 +240,30 @@ class _BitacorasScreenState extends ConsumerState<BitacorasScreen> {
                     await bitacoraService.createBitacora(obraId, data);
                   }
 
+                  // Complete selected tasks
+                  if (tareasSeleccionadas.isNotEmpty) {
+                    final tareaService = ref.read(tareaServiceProvider);
+                    for (final tareaId in tareasSeleccionadas) {
+                      try {
+                        await tareaService.completeTask(obraId, tareaId);
+                      } catch (e) {
+                        // Continue with other tasks if one fails
+                        print('Error al completar tarea $tareaId: $e');
+                      }
+                    }
+                  }
+
                   if (context.mounted) {
                     Navigator.pop(context, true);
+                    if (tareasSeleccionadas.isNotEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Bitácora guardada y ${tareasSeleccionadas.length} tarea(s) completada(s)',
+                          ),
+                        ),
+                      );
+                    }
                   }
                 } catch (e) {
                   if (context.mounted) {

@@ -12,14 +12,14 @@ class ObraService {
 
   ObraService(this._apiService);
 
-  /// Obtiene las obras del usuario autenticado
+  /// Get authenticated user's projects
   Future<List<Obra>> getMyObras() async {
     final response = await _apiService.get('/auth/my-obras');
     final data = response.data as List;
     return data.map((json) => Obra.fromJson(json)).toList();
   }
 
-  /// Cambia la obra actual del usuario y obtiene un nuevo token
+  /// Switch current user's project and get new token
   Future<String> switchObra(String obraId) async {
     final response = await _apiService.post(
       '/auth/switch-obra',
@@ -28,7 +28,7 @@ class ObraService {
     return response.data['token'] as String;
   }
 
-  /// Obtiene todas las obras (solo Admin General)
+  /// Get all projects (Admin General only)
   Future<List<Obra>> getAllObras({
     int page = 1,
     int limit = 10,
@@ -44,28 +44,34 @@ class ObraService {
     return data.map((json) => Obra.fromJson(json)).toList();
   }
 
-  /// Crea una nueva obra (solo Admin General)
+  /// Create a new project (Admin General only)
   Future<Obra> createObra(Map<String, dynamic> data) async {
     final response = await _apiService.post('/obras', data: data);
     return Obra.fromJson(response.data);
   }
 
-  /// Actualiza una obra (solo Admin General)
+  /// Update a project (Admin General only)
   Future<Obra> updateObra(String obraId, Map<String, dynamic> data) async {
     final response = await _apiService.patch('/obras/$obraId', data: data);
     return Obra.fromJson(response.data);
   }
 
-  /// Elimina una obra (solo Admin General)
+  /// Delete a project (Admin General only)
   Future<void> deleteObra(String obraId) async {
     await _apiService.delete('/obras/$obraId');
   }
 
-  /// Asigna un usuario a una obra (solo Admin General)
+  /// Assign a user to a project (Admin General only)
   Future<void> asignarUsuario(String obraId, String usuarioId) async {
     await _apiService.post(
       '/obras/$obraId/usuarios',
       data: {'usuarioId': usuarioId},
     );
+  }
+
+  /// Get users assigned to a project
+  Future<List<Map<String, dynamic>>> getUsuariosObra(String obraId) async {
+    final response = await _apiService.get('/obras/$obraId/usuarios');
+    return (response.data as List).cast<Map<String, dynamic>>();
   }
 }

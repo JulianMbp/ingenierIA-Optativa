@@ -31,18 +31,29 @@ class User {
   String get fullName => '$firstName $lastName';
 
   factory User.fromJson(Map<String, dynamic> json) {
+    // Helper para parsear int de forma segura
+    int _parseInt(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      if (value is double) return value.toInt();
+      return 0;
+    }
+
     return User(
-      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
-      email: json['email'] ?? '',
-      firstName: json['firstName'] ?? '',
-      lastName: json['lastName'] ?? '',
-      role: Role.fromJson(json['role'] ?? {}),
-      provider: json['provider'],
-      socialId: json['socialId'],
-      status: json['status'],
-      createdAt: json['createdAt'],
-      updatedAt: json['updatedAt'],
-      deletedAt: json['deletedAt'],
+      id: _parseInt(json['id']),
+      email: json['email']?.toString() ?? '',
+      firstName: json['firstName']?.toString() ?? json['first_name']?.toString() ?? '',
+      lastName: json['lastName']?.toString() ?? json['last_name']?.toString() ?? '',
+      role: json['role'] != null && json['role'] is Map<String, dynamic>
+          ? Role.fromJson(json['role'] as Map<String, dynamic>)
+          : Role(id: 0, name: 'obrero', type: RoleType.obrero),
+      provider: json['provider']?.toString(),
+      socialId: json['socialId']?.toString() ?? json['social_id']?.toString(),
+      status: json['status'] is Map<String, dynamic> ? json['status'] as Map<String, dynamic> : null,
+      createdAt: json['createdAt']?.toString() ?? json['created_at']?.toString(),
+      updatedAt: json['updatedAt']?.toString() ?? json['updated_at']?.toString(),
+      deletedAt: json['deletedAt']?.toString() ?? json['deleted_at']?.toString(),
     );
   }
 

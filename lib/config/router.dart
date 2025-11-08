@@ -11,10 +11,10 @@ import '../features/dashboard/modules/documentos_screen.dart';
 import '../features/dashboard/modules/logs_screen.dart';
 import '../features/dashboard/modules/materiales_screen.dart';
 import '../features/dashboard/modules/presupuestos_screen.dart';
+import '../features/dashboard/modules/tareas_screen.dart';
 import '../features/obras/select_obra_screen.dart';
 import '../features/profile/profile_screen.dart';
 
-// Notifier simple que se actualiza cuando cambia el estado de auth
 class RouterNotifier extends ChangeNotifier {
   void notify() {
     notifyListeners();
@@ -24,7 +24,6 @@ class RouterNotifier extends ChangeNotifier {
 final _routerNotifierProvider = Provider<RouterNotifier>((ref) {
   final notifier = RouterNotifier();
   
-  // Escuchar cambios en authProvider y notificar al router
   ref.listen(authProvider, (previous, next) {
     notifier.notify();
   });
@@ -45,26 +44,21 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggingIn = state.matchedLocation == '/login';
       final isSelectingObra = state.matchedLocation == '/select-obra';
 
-      // Debug: imprimir estado
       print('Router redirect - isLoggedIn: $isLoggedIn, hasObra: $hasObraSelected, location: ${state.matchedLocation}');
 
-      // No está logueado y no está en login -> redirigir a login
       if (!isLoggedIn && !isLoggingIn) {
         return '/login';
       }
 
-      // Está logueado pero está en login -> redirigir a select-obra
       if (isLoggedIn && isLoggingIn) {
         print('Redirigiendo a select-obra');
         return '/select-obra';
       }
 
-      // Está logueado pero no ha seleccionado obra y no está en select-obra
       if (isLoggedIn && !hasObraSelected && !isSelectingObra && !isLoggingIn) {
         return '/select-obra';
       }
 
-      // Está logueado, tiene obra seleccionada y está en select-obra -> ir a dashboard
       if (isLoggedIn && hasObraSelected && isSelectingObra) {
         return '/dashboard';
       }
@@ -91,6 +85,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/modules/materiales',
         builder: (context, state) => const MaterialesScreen(),
+      ),
+      GoRoute(
+        path: '/modules/tareas',
+        builder: (context, state) => const TareasScreen(),
       ),
       GoRoute(
         path: '/modules/bitacoras',

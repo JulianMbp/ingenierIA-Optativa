@@ -1339,6 +1339,367 @@
           }
         }
       ]
+    },
+    {
+      "name": "8. Tareas",
+      "item": [
+        {
+          "name": "8.1 Listar Tareas de la Obra",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has tareas', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    if (jsonData.length > 0) {",
+                  "        pm.environment.set('tareaId', jsonData[0].id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/obras/{{obraId}}/tareas",
+              "host": ["{{baseUrl}}"],
+              "path": ["obras", "{{obraId}}", "tareas"]
+            },
+            "description": "Listar todas las tareas de la obra especificada"
+          }
+        },
+        {
+          "name": "8.2 Mis Tareas Asignadas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has my tareas', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/obras/{{obraId}}/tareas/mis-tareas",
+              "host": ["{{baseUrl}}"],
+              "path": ["obras", "{{obraId}}", "tareas", "mis-tareas"]
+            },
+            "description": "Obtener las tareas asignadas al usuario autenticado en esta obra"
+          }
+        },
+        {
+          "name": "8.3 Tareas Asignadas a Usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has user tareas', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/obras/{{obraId}}/tareas/asignadas/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["obras", "{{obraId}}", "tareas", "asignadas", "{{userId}}"]
+            },
+            "description": "Obtener tareas asignadas a un usuario específico"
+          }
+        },
+        {
+          "name": "8.4 Obtener Tarea por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Tarea detail', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.be.a('string');",
+                  "    pm.expect(jsonData.titulo).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/obras/{{obraId}}/tareas/{{tareaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["obras", "{{obraId}}", "tareas", "{{tareaId}}"]
+            },
+            "description": "Obtener detalles de una tarea específica"
+          }
+        },
+        {
+          "name": "8.5 Crear Tarea",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Tarea created', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.be.a('string');",
+                  "    pm.environment.set('tareaId', jsonData.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Instalación de estructura metálica\",\n  \"descripcion\": \"Instalar estructura principal del sector A según planos\",\n  \"prioridad\": \"alta\",\n  \"asignado_a_id\": 43,\n  \"fecha_inicio\": \"2025-11-05\",\n  \"fecha_vencimiento\": \"2025-11-15\",\n  \"progreso_porcentaje\": 0,\n  \"notas\": \"Coordinar con supervisor antes de iniciar\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/obras/{{obraId}}/tareas",
+              "host": ["{{baseUrl}}"],
+              "path": ["obras", "{{obraId}}", "tareas"]
+            },
+            "description": "Crear una nueva tarea en la obra (el creador se toma del JWT)"
+          }
+        },
+        {
+          "name": "8.6 Actualizar Tarea",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Tarea updated', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"en_progreso\",\n  \"progreso_porcentaje\": 50,\n  \"notas\": \"Avance del 50% - En proceso de instalación\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/obras/{{obraId}}/tareas/{{tareaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["obras", "{{obraId}}", "tareas", "{{tareaId}}"]
+            },
+            "description": "Actualizar el estado, progreso y otros campos de una tarea"
+          }
+        },
+        {
+          "name": "8.7 Completar Tarea",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Tarea completed', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.estado).to.equal('completada');",
+                  "    pm.expect(jsonData.progreso_porcentaje).to.equal(100);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"completada\",\n  \"progreso_porcentaje\": 100,\n  \"notas\": \"Tarea completada exitosamente\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/obras/{{obraId}}/tareas/{{tareaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["obras", "{{obraId}}", "tareas", "{{tareaId}}"]
+            },
+            "description": "Marcar una tarea como completada con progreso al 100%"
+          }
+        },
+        {
+          "name": "8.8 Eliminar Tarea",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/obras/{{obraId}}/tareas/{{tareaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["obras", "{{obraId}}", "tareas", "{{tareaId}}"]
+            },
+            "description": "Eliminar una tarea de la obra"
+          }
+        }
+      ]
     }
   ],
   "variable": [
@@ -1384,6 +1745,11 @@
     },
     {
       "key": "asistenciaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tareaId",
       "value": "",
       "type": "string"
     },

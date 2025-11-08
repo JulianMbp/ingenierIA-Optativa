@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../config/theme.dart';
 import '../../core/models/role.dart';
+import '../../core/services/tarea_service.dart';
 import '../../core/widgets/glass_container.dart';
 import '../auth/auth_provider.dart';
 
@@ -139,6 +140,14 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
 
+              // Project progress bar
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _ObraProgressCard(obraId: authState.obraActual?.id),
+                ),
+              ),
+
               // Modules title
               SliverToBoxAdapter(
                 child: Padding(
@@ -181,6 +190,12 @@ class DashboardScreen extends ConsumerWidget {
       case RoleType.adminGeneral:
         return [
           ModuleItem(
+            title: 'Tareas',
+            icon: Icons.task_outlined,
+            color: AppTheme.iosTeal,
+            route: '/modules/tareas',
+          ),
+          ModuleItem(
             title: 'Materiales',
             icon: Icons.inventory_2_outlined,
             color: AppTheme.iosBlue,
@@ -201,25 +216,31 @@ class DashboardScreen extends ConsumerWidget {
           ModuleItem(
             title: 'Presupuestos',
             icon: Icons.attach_money_outlined,
-            color: AppTheme.iosTeal,
+            color: AppTheme.iosPurple,
             route: '/modules/presupuestos',
           ),
           ModuleItem(
             title: 'Documentos',
             icon: Icons.folder_outlined,
-            color: AppTheme.iosPurple,
+            color: AppTheme.iosPink,
             route: '/modules/documentos',
           ),
           ModuleItem(
             title: 'Logs',
             icon: Icons.history,
-            color: AppTheme.iosPink,
+            color: Colors.grey,
             route: '/modules/logs',
           ),
         ];
 
       case RoleType.adminObra:
         return [
+          ModuleItem(
+            title: 'Tareas',
+            icon: Icons.task_outlined,
+            color: AppTheme.iosTeal,
+            route: '/modules/tareas',
+          ),
           ModuleItem(
             title: 'Materiales',
             icon: Icons.inventory_2_outlined,
@@ -235,7 +256,7 @@ class DashboardScreen extends ConsumerWidget {
           ModuleItem(
             title: 'Presupuestos',
             icon: Icons.attach_money_outlined,
-            color: AppTheme.iosTeal,
+            color: AppTheme.iosPurple,
             route: '/modules/presupuestos',
           ),
         ];
@@ -339,6 +360,202 @@ class _ModuleCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Project progress bar widget
+class _ObraProgressCard extends ConsumerStatefulWidget {
+  final String? obraId;
+
+  const _ObraProgressCard({this.obraId});
+
+  @override
+  ConsumerState<_ObraProgressCard> createState() => _ObraProgressCardState();
+}
+
+class _ObraProgressCardState extends ConsumerState<_ObraProgressCard> {
+  double _progreso = 0.0;
+  bool _isLoading = true;
+  int _totalTareas = 0;
+  int _tareasCompletadas = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarProgreso();
+  }
+
+  @override
+  void didUpdateWidget(_ObraProgressCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.obraId != oldWidget.obraId) {
+      _cargarProgreso();
+    }
+  }
+
+  Future<void> _cargarProgreso() async {
+    if (widget.obraId == null) {
+      setState(() {
+        _progreso = 0.0;
+        _isLoading = false;
+      });
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final tareaService = ref.read(tareaServiceProvider);
+      final tareas = await tareaService.listTasks(widget.obraId!);
+
+      if (tareas.isEmpty) {
+        setState(() {
+          _progreso = 0.0;
+          _totalTareas = 0;
+          _tareasCompletadas = 0;
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final completadas = tareas.where((t) => t.isCompletada).length;
+      final suma = tareas.fold<int>(0, (sum, t) => sum + t.progresosPorcentaje);
+
+      setState(() {
+        _progreso = suma / tareas.length;
+        _totalTareas = tareas.length;
+        _tareasCompletadas = completadas;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _progreso = 0.0;
+        _totalTareas = 0;
+        _tareasCompletadas = 0;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final obraActual = authState.obraActual;
+
+    if (obraActual == null) {
+      return const SizedBox.shrink();
+    }
+
+    return GlassContainer(
+      blur: 15,
+      opacity: 0.2,
+      borderRadius: BorderRadius.circular(20),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      obraActual.nombre,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Progreso General',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey[600],
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_isLoading)
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _progreso < 30
+                        ? Colors.red.withOpacity(0.2)
+                        : _progreso < 70
+                            ? Colors.orange.withOpacity(0.2)
+                            : Colors.green.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${_progreso.toStringAsFixed(0)}%',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: _progreso < 30
+                          ? Colors.red
+                          : _progreso < 70
+                              ? Colors.orange
+                              : Colors.green,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: _isLoading ? null : _progreso / 100,
+              minHeight: 12,
+              backgroundColor: Colors.grey[300],
+              valueColor: AlwaysStoppedAnimation<Color>(
+                _progreso < 30
+                    ? Colors.red
+                    : _progreso < 70
+                        ? Colors.orange
+                        : Colors.green,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.task_alt, size: 16, color: Colors.grey[600]),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$_tareasCompletadas/$_totalTareas tareas completadas',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  context.push('/modules/tareas');
+                },
+                icon: const Icon(Icons.arrow_forward, size: 16),
+                label: const Text('Ver tareas'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

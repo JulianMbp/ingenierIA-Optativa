@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/theme.dart';
+import '../../core/services/tarea_service.dart';
 import '../../core/widgets/glass_container.dart';
 import '../auth/auth_provider.dart';
 
@@ -17,7 +18,6 @@ class _SelectObraScreenState extends ConsumerState<SelectObraScreen> {
   @override
   void initState() {
     super.initState();
-    // Cargar obras cuando se monta la pantalla
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authState = ref.read(authProvider);
       if (authState.misObras.isEmpty) {
@@ -112,132 +112,7 @@ class _SelectObraScreenState extends ConsumerState<SelectObraScreen> {
                                 final obra = obras[index];
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 16),
-                                  child: GestureDetector(
-                                    onTap: () async {
-                                      final success = await ref
-                                          .read(authProvider.notifier)
-                                          .selectObra(obra.id);
-                                      
-                                      if (success && context.mounted) {
-                                        context.go('/dashboard');
-                                      }
-                                    },
-                                    child: GlassContainer(
-                                      blur: 15,
-                                      opacity: 0.2,
-                                      borderRadius: BorderRadius.circular(20),
-                                      padding: const EdgeInsets.all(24),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.business,
-                                                color: AppTheme.iosBlue,
-                                                size: 32,
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Text(
-                                                  obra.nombre,
-                                                  style: const TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                              Icon(
-                                                Icons.arrow_forward_ios,
-                                                color: AppTheme.iosBlue,
-                                              ),
-                                            ],
-                                          ),
-                                          if (obra.descripcion != null) ...[
-                                            const SizedBox(height: 12),
-                                            Text(
-                                              obra.descripcion!,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                          ],
-                                          if (obra.direccion != null) ...[
-                                            const SizedBox(height: 8),
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.location_on_outlined,
-                                                  size: 16,
-                                                  color: Colors.grey,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Expanded(
-                                                  child: Text(
-                                                    obra.direccion!,
-                                                    style: const TextStyle(
-                                                      fontSize: 13,
-                                                      color: Colors.grey,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                          const SizedBox(height: 12),
-                                          Row(
-                                            children: [
-                                              if (obra.estado != null) ...[
-                                                Container(
-                                                  padding: const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 6,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color: obra.isActiva 
-                                                        ? Colors.green.withOpacity(0.2)
-                                                        : Colors.orange.withOpacity(0.2),
-                                                    borderRadius: BorderRadius.circular(12),
-                                                  ),
-                                                  child: Text(
-                                                    obra.estado!.toUpperCase(),
-                                                    style: TextStyle(
-                                                      fontSize: 11,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: obra.isActiva 
-                                                          ? Colors.green
-                                                          : Colors.orange,
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 12),
-                                              ],
-                                              if (obra.roleName != null)
-                                                Container(
-                                                  padding: const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 6,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color: AppTheme.iosBlue.withOpacity(0.2),
-                                                    borderRadius: BorderRadius.circular(12),
-                                                  ),
-                                                  child: Text(
-                                                    obra.roleName!,
-                                                    style: const TextStyle(
-                                                      fontSize: 11,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: AppTheme.iosBlue,
-                                                    ),
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                  child: _ObraCard(obra: obra),
                                 );
                               },
                             ),
@@ -245,6 +120,236 @@ class _SelectObraScreenState extends ConsumerState<SelectObraScreen> {
                         ],
                       ),
                     ),
+        ),
+      ),
+    );
+  }
+}
+
+// Project card widget with progress
+class _ObraCard extends ConsumerStatefulWidget {
+  final dynamic obra;
+
+  const _ObraCard({required this.obra});
+
+  @override
+  ConsumerState<_ObraCard> createState() => _ObraCardState();
+}
+
+class _ObraCardState extends ConsumerState<_ObraCard> {
+  double _progreso = 0.0;
+  bool _cargandoProgreso = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarProgreso();
+  }
+
+  Future<void> _cargarProgreso() async {
+    try {
+      final tareaService = ref.read(tareaServiceProvider);
+      final tareas = await tareaService.listTasks(widget.obra.id);
+
+      if (tareas.isEmpty) {
+        setState(() {
+          _progreso = 0.0;
+          _cargandoProgreso = false;
+        });
+        return;
+      }
+
+      final suma = tareas.fold<int>(0, (sum, t) => sum + t.progresosPorcentaje);
+      setState(() {
+        _progreso = suma / tareas.length;
+        _cargandoProgreso = false;
+      });
+    } catch (e) {
+      setState(() {
+        _progreso = 0.0;
+        _cargandoProgreso = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        final success =
+            await ref.read(authProvider.notifier).selectObra(widget.obra.id);
+
+        if (success && context.mounted) {
+          context.go('/dashboard');
+        }
+      },
+      child: GlassContainer(
+        blur: 15,
+        opacity: 0.2,
+        borderRadius: BorderRadius.circular(20),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.business,
+                  color: AppTheme.iosBlue,
+                  size: 32,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    widget.obra.nombre,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: AppTheme.iosBlue,
+                ),
+              ],
+            ),
+            if (widget.obra.descripcion != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                widget.obra.descripcion!,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+            if (widget.obra.direccion != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      widget.obra.direccion!,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 16),
+            // Progress bar
+            Row(
+              children: [
+                const Icon(
+                  Icons.show_chart,
+                  size: 16,
+                  color: Colors.grey,
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Progreso:',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (_cargandoProgreso)
+                  const SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  Text(
+                    '${_progreso.toStringAsFixed(0)}%',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: _progreso < 30
+                          ? Colors.red
+                          : _progreso < 70
+                              ? Colors.orange
+                              : Colors.green,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: _cargandoProgreso ? null : _progreso / 100,
+                minHeight: 8,
+                backgroundColor: Colors.grey[300],
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  _progreso < 30
+                      ? Colors.red
+                      : _progreso < 70
+                          ? Colors.orange
+                          : Colors.green,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                if (widget.obra.estado != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: widget.obra.isActiva
+                          ? Colors.green.withOpacity(0.2)
+                          : Colors.orange.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      widget.obra.estado!.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: widget.obra.isActiva ? Colors.green : Colors.orange,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                if (widget.obra.roleName != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.iosBlue.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      widget.obra.roleName!,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.iosBlue,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
         ),
       ),
     );
