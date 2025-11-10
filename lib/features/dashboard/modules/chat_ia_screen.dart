@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../config/theme.dart';
-import '../../../core/services/bitacora_ai_service.dart';
+import '../../../core/services/work_log_ai_service.dart';
 import '../../../core/services/connectivity_service.dart';
 import '../../auth/auth_provider.dart';
 
@@ -59,7 +59,7 @@ class _ChatIaScreenState extends ConsumerState<ChatIaScreen> {
   void _addWelcomeMessage() {
     _messages.add(
       ChatMessage(
-        text: '¡Hola! Soy tu asistente de IA. Puedo ayudarte a responder preguntas sobre la obra, materiales, tareas, bitácoras y más. ¿En qué puedo ayudarte?',
+        text: 'Hello! I\'m your AI assistant. I can help you answer questions about the project, materials, tasks, work logs and more. How can I help you?',
         isUser: false,
         timestamp: DateTime.now(),
       ),
@@ -100,26 +100,26 @@ class _ChatIaScreenState extends ConsumerState<ChatIaScreen> {
 
     try {
       final authState = ref.read(authProvider);
-      final obraId = authState.obraActual?.id;
+      final projectId = authState.currentProject?.id;
 
-      if (obraId == null) {
-        throw Exception('No hay obra seleccionada');
+      if (projectId == null) {
+        throw Exception('No project selected');
       }
 
-      final service = ref.read(bitacoraAiServiceProvider);
-      final response = await service.hacerPregunta(
-        obraId: obraId,
-        mensaje: mensaje,
+      final service = ref.read(workLogAiServiceProvider);
+      final response = await service.askQuestion(
+        projectId: projectId,
+        message: mensaje,
       );
 
-      // Agregar respuesta de la IA
+      // Add AI response
       setState(() {
         _messages.add(
           ChatMessage(
-            text: response.data.respuesta,
+            text: response.data.answer,
             isUser: false,
             timestamp: DateTime.now(),
-            tokensUsados: response.data.tokensUsados,
+            tokensUsados: response.data.tokensUsed,
           ),
         );
         _isLoading = false;
@@ -161,7 +161,7 @@ class _ChatIaScreenState extends ConsumerState<ChatIaScreen> {
           children: [
             Icon(Icons.auto_awesome, size: 24),
             SizedBox(width: 8),
-            Text('Chat con IA'),
+            Text('AI Chat'),
           ],
         ),
         backgroundColor: AppTheme.iosOrange,
@@ -192,7 +192,7 @@ class _ChatIaScreenState extends ConsumerState<ChatIaScreen> {
                       SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Sin conexión a internet',
+                          'No internet connection',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -218,7 +218,7 @@ class _ChatIaScreenState extends ConsumerState<ChatIaScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Inicia una conversación',
+                              'Start a conversation',
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.grey[600],
@@ -259,7 +259,7 @@ class _ChatIaScreenState extends ConsumerState<ChatIaScreen> {
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
-                                          'Pensando...',
+                                          'Thinking...',
                                           style: TextStyle(
                                             color: AppTheme.iosOrange,
                                             fontSize: 12,
@@ -301,7 +301,7 @@ class _ChatIaScreenState extends ConsumerState<ChatIaScreen> {
                           child: TextField(
                             controller: _messageController,
                             decoration: InputDecoration(
-                              hintText: 'Escribe tu pregunta...',
+                              hintText: 'Type your question...',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(24),
                                 borderSide: BorderSide.none,

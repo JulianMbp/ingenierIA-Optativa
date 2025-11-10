@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../config/theme.dart';
 import '../../core/models/role.dart';
-import '../../core/providers/obra_progress_provider.dart';
+import '../../core/providers/project_progress_provider.dart';
 import '../../core/widgets/glass_container.dart';
 import '../../core/widgets/offline_banner.dart';
 import '../auth/auth_provider.dart';
@@ -151,7 +151,7 @@ class DashboardScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: _ObraProgressCard(obraId: authState.obraActual?.id),
+                  child: _ProjectProgressCard(projectId: authState.currentProject?.id),
                 ),
               ),
 
@@ -209,25 +209,25 @@ class DashboardScreen extends ConsumerWidget {
             title: 'Tareas',
             icon: Icons.task_outlined,
             color: AppTheme.iosTeal,
-            route: '/modules/tareas',
+            route: '/modules/tasks',
           ),
           ModuleItem(
             title: 'Materiales',
             icon: Icons.inventory_2_outlined,
             color: AppTheme.iosBlue,
-            route: '/modules/materiales',
+            route: '/modules/materials',
           ),
           ModuleItem(
             title: 'Bitácoras',
             icon: Icons.note_alt_outlined,
             color: AppTheme.iosOrange,
-            route: '/modules/bitacoras',
+            route: '/modules/work-logs',
           ),
           ModuleItem(
             title: 'Asistencias',
             icon: Icons.check_circle_outline,
             color: AppTheme.iosGreen,
-            route: '/modules/asistencias',
+            route: '/modules/attendance',
           ),
           ModuleItem(
             title: 'Documentos',
@@ -255,19 +255,19 @@ class DashboardScreen extends ConsumerWidget {
             title: 'Tareas',
             icon: Icons.task_outlined,
             color: AppTheme.iosTeal,
-            route: '/modules/tareas',
+            route: '/modules/tasks',
           ),
           ModuleItem(
             title: 'Materiales',
             icon: Icons.inventory_2_outlined,
             color: AppTheme.iosBlue,
-            route: '/modules/materiales',
+            route: '/modules/materials',
           ),
           ModuleItem(
             title: 'Bitácoras',
             icon: Icons.note_alt_outlined,
             color: AppTheme.iosOrange,
-            route: '/modules/bitacoras',
+            route: '/modules/work-logs',
           ),
         ];
 
@@ -283,13 +283,13 @@ class DashboardScreen extends ConsumerWidget {
             title: 'Asistencias',
             icon: Icons.check_circle_outline,
             color: AppTheme.iosGreen,
-            route: '/modules/asistencias',
+            route: '/modules/attendance',
           ),
           ModuleItem(
             title: 'Bitácoras',
             icon: Icons.note_alt_outlined,
             color: AppTheme.iosOrange,
-            route: '/modules/bitacoras',
+            route: '/modules/work-logs',
           ),
         ];
 
@@ -305,7 +305,7 @@ class DashboardScreen extends ConsumerWidget {
             title: 'Asistencias',
             icon: Icons.check_circle_outline,
             color: AppTheme.iosGreen,
-            route: '/modules/asistencias',
+            route: '/modules/attendance',
           ),
         ];
 
@@ -327,7 +327,7 @@ class DashboardScreen extends ConsumerWidget {
             title: 'Bitácoras',
             icon: Icons.note_alt_outlined,
             color: AppTheme.iosOrange,
-            route: '/modules/bitacoras',
+            route: '/modules/work-logs',
           ),
         ];
     }
@@ -394,34 +394,34 @@ class _ModuleCard extends StatelessWidget {
 }
 
 // Project progress bar widget
-class _ObraProgressCard extends ConsumerWidget {
-  final String? obraId;
+class _ProjectProgressCard extends ConsumerWidget {
+  final String? projectId;
 
-  const _ObraProgressCard({this.obraId});
+  const _ProjectProgressCard({this.projectId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Escuchar cambios en el progreso de la obra
-    final progressState = ref.watch(obraProgressProvider);
+    // Listen to project progress changes
+    final progressState = ref.watch(projectProgressProvider);
     final authState = ref.watch(authProvider);
-    final obraActual = authState.obraActual;
+    final currentProject = authState.currentProject;
 
-    // Cargar progreso cuando cambie el obraId o cuando se monte el widget
+    // Load progress when projectId changes or when widget mounts
     ref.listen<String?>(
-      authProvider.select((state) => state.obraActual?.id),
+      authProvider.select((state) => state.currentProject?.id),
       (previous, next) {
         if (previous != next && next != null) {
-          // Cuando cambie la obra, refrescar el progreso
-          ref.read(obraProgressProvider.notifier).refresh();
+          // When project changes, refresh progress
+          ref.read(projectProgressProvider.notifier).refresh();
         }
       },
     );
 
-    if (obraActual == null) {
+    if (currentProject == null) {
       return const SizedBox.shrink();
     }
 
-    final progreso = progressState.progreso;
+    final progress = progressState.progress;
     final isLoading = progressState.isLoading;
 
     return GlassContainer(
@@ -440,7 +440,7 @@ class _ObraProgressCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      obraActual.nombre,
+                      currentProject.name,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -449,7 +449,7 @@ class _ObraProgressCard extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Progreso General',
+                      'Overall Progress',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.grey[600],
                           ),
@@ -470,21 +470,21 @@ class _ObraProgressCard extends ConsumerWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: progreso < 30
+                    color: progress < 30
                         ? Colors.red.withOpacity(0.2)
-                        : progreso < 70
+                        : progress < 70
                             ? Colors.orange.withOpacity(0.2)
                             : Colors.green.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '${progreso.toStringAsFixed(0)}%',
+                    '${progress.toStringAsFixed(0)}%',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: progreso < 30
+                      color: progress < 30
                           ? Colors.red
-                          : progreso < 70
+                          : progress < 70
                               ? Colors.orange
                               : Colors.green,
                     ),
@@ -496,13 +496,13 @@ class _ObraProgressCard extends ConsumerWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
-              value: isLoading ? null : progreso / 100,
+              value: isLoading ? null : progress / 100,
               minHeight: 12,
               backgroundColor: Colors.grey[300],
               valueColor: AlwaysStoppedAnimation<Color>(
-                progreso < 30
+                progress < 30
                     ? Colors.red
-                    : progreso < 70
+                    : progress < 70
                         ? Colors.orange
                         : Colors.green,
               ),
@@ -517,22 +517,22 @@ class _ObraProgressCard extends ConsumerWidget {
                   Icon(Icons.task_alt, size: 16, color: Colors.grey[600]),
                   const SizedBox(width: 4),
                   Text(
-                    '${progressState.tareasCompletadas}/${progressState.totalTareas} tareas completadas',
+                    '${progressState.completedTasks}/${progressState.totalTasks} tasks completed',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
               TextButton.icon(
                 onPressed: () async {
-                  // Navegar a tareas y esperar a que regrese
-                  await context.push('/modules/tareas');
-                  // Cuando regrese, refrescar el progreso
+                  // Navigate to tasks and wait for return
+                  await context.push('/modules/tasks');
+                  // When returning, refresh progress
                   if (context.mounted) {
-                    ref.read(obraProgressProvider.notifier).refresh();
+                    ref.read(projectProgressProvider.notifier).refresh();
                   }
                 },
                 icon: const Icon(Icons.arrow_forward, size: 16),
-                label: const Text('Ver tareas'),
+                label: const Text('View tasks'),
               ),
             ],
           ),

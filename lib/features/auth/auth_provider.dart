@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/models/obra.dart';
+import '../../core/models/project.dart';
 import '../../core/models/user.dart';
 import '../../core/services/auth_service.dart';
-import '../../core/services/obra_service.dart';
+import '../../core/services/project_service.dart';
 import '../../core/services/storage_service.dart';
 
 // Auth state
@@ -12,35 +12,35 @@ class AuthState {
   final String? token;
   final bool isLoading;
   final String? error;
-  final Obra? obraActual;
-  final List<Obra> misObras;
+  final Project? currentProject;
+  final List<Project> myProjects;
 
   AuthState({
     this.user,
     this.token,
     this.isLoading = false,
     this.error,
-    this.obraActual,
-    this.misObras = const [],
+    this.currentProject,
+    this.myProjects = const [],
   });
 
-  bool get hasObraSelected => obraActual != null;
+  bool get hasProjectSelected => currentProject != null;
 
   AuthState copyWith({
     User? user,
     String? token,
     bool? isLoading,
     String? error,
-    Obra? obraActual,
-    List<Obra>? misObras,
+    Project? currentProject,
+    List<Project>? myProjects,
   }) {
     return AuthState(
       user: user ?? this.user,
       token: token ?? this.token,
       isLoading: isLoading ?? this.isLoading,
       error: error,
-      obraActual: obraActual ?? this.obraActual,
-      misObras: misObras ?? this.misObras,
+      currentProject: currentProject ?? this.currentProject,
+      myProjects: myProjects ?? this.myProjects,
     );
   }
 }
@@ -48,12 +48,12 @@ class AuthState {
 // Auth notifier
 class AuthNotifier extends Notifier<AuthState> {
   late AuthService _authService;
-  late ObraService _obraService;
+  late ProjectService _projectService;
 
   @override
   AuthState build() {
     _authService = ref.read(authServiceProvider);
-    _obraService = ref.read(obraServiceProvider);
+    _projectService = ref.read(projectServiceProvider);
     _checkAuth();
     return AuthState();
   }
@@ -68,8 +68,8 @@ class AuthNotifier extends Notifier<AuthState> {
         final token = await storageService.getToken();
         state = state.copyWith(user: user, token: token);
         
-        // Cargar obras después de autenticar
-        await loadMyObras();
+        // Load projects after authentication
+        await loadMyProjects();
       }
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -82,21 +82,21 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final result = await _authService.login(email, password);
       
-      // Actualizar estado inmediatamente después del login
-      // Esto permitirá que el router redirija inmediatamente
+      // Update state immediately after login
+      // This will allow the router to redirect immediately
       state = state.copyWith(
         user: result['user'],
         token: result['token'],
         isLoading: false,
-        misObras: const [], // Inicializar con lista vacía para permitir navegación
+        myProjects: const [], // Initialize with empty list to allow navigation
       );
       
-      // Cargar obras del usuario en segundo plano
-      // No esperamos a que termine para no bloquear el login
-      // El router redirigirá a /select-obra mientras se cargan las obras
-      loadMyObras().catchError((e) {
-        // Solo loguear el error, no bloquear el login
-        print('Error cargando obras: $e');
+      // Load user projects in background
+      // We don't wait for it to finish to avoid blocking login
+      // Router will redirect to /select-project while projects are loading
+      loadMyProjects().catchError((e) {
+        // Only log the error, don't block login
+        print('Error loading projects: $e');
       });
       
       return true;
@@ -109,51 +109,51 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  // Cargar las obras del usuario
-  Future<void> loadMyObras() async {
+  // Load user projects
+  Future<void> loadMyProjects() async {
     try {
-      final obras = await _obraService.getMyObras();
-      print('Obras cargadas: ${obras.length}');
+      final projects = await _projectService.getMyProjects();
+      print('Projects loaded: ${projects.length}');
       
-      state = state.copyWith(misObras: obras);
+      state = state.copyWith(myProjects: projects);
       
-      // Si solo hay una obra, seleccionarla automáticamente
-      if (obras.length == 1) {
+      // If there's only one project, select it automatically
+      if (projects.length == 1) {
         try {
-          print('Seleccionando obra automáticamente: ${obras.first.id}');
-          await selectObra(obras.first.id);
+          print('Selecting project automatically: ${projects.first.id}');
+          await selectProject(projects.first.id);
         } catch (e) {
-          // Si falla la selección automática, no bloquear
-          print('Error seleccionando obra automáticamente: $e');
+          // If automatic selection fails, don't block
+          print('Error selecting project automatically: $e');
         }
-      } else if (obras.isEmpty) {
-        print('No hay obras disponibles para el usuario');
+      } else if (projects.isEmpty) {
+        print('No projects available for user');
       }
     } catch (e) {
-      // No actualizamos el estado con error aquí
-      // para no interferir con el flujo de login
-      print('Error al cargar obras: $e');
-      // Asegurar que el estado tenga al menos una lista vacía
-      // para que el router pueda navegar correctamente
-      state = state.copyWith(misObras: []);
+      // Don't update state with error here
+      // to avoid interfering with login flow
+      print('Error loading projects: $e');
+      // Ensure state has at least an empty list
+      // so router can navigate correctly
+      state = state.copyWith(myProjects: []);
     }
   }
 
-  // Seleccionar una obra
-  Future<bool> selectObra(String obraId) async {
+  // Select a project
+  Future<bool> selectProject(String projectId) async {
     state = state.copyWith(isLoading: true);
     try {
-      final newToken = await _obraService.switchObra(obraId);
+      final newToken = await _projectService.switchProject(projectId);
       final storageService = ref.read(storageServiceProvider);
       await storageService.saveToken(newToken);
       
-      final obraSeleccionada = state.misObras.firstWhere(
-        (obra) => obra.id == obraId,
+      final selectedProject = state.myProjects.firstWhere(
+        (project) => project.id == projectId,
       );
       
       state = state.copyWith(
         token: newToken,
-        obraActual: obraSeleccionada,
+        currentProject: selectedProject,
         isLoading: false,
       );
       
@@ -161,7 +161,7 @@ class AuthNotifier extends Notifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Error al seleccionar obra: $e',
+        error: 'Error selecting project: $e',
       );
       return false;
     }

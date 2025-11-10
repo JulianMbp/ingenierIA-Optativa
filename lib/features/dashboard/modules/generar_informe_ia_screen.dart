@@ -8,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../config/theme.dart';
-import '../../../core/services/bitacora_ai_service.dart';
+import '../../../core/services/work_log_ai_service.dart';
 import '../../../core/services/connectivity_service.dart';
 import '../../../core/services/pdf_service.dart';
 import '../../../core/widgets/glass_container.dart';
@@ -125,22 +125,22 @@ class _GenerarInformeIaScreenState
 
     try {
       final authState = ref.read(authProvider);
-      final obraId = authState.obraActual?.id;
+      final projectId = authState.currentProject?.id;
 
-      if (obraId == null) {
-        throw Exception('No hay obra seleccionada');
+      if (projectId == null) {
+        throw Exception('No project selected');
       }
 
-      final service = ref.read(bitacoraAiServiceProvider);
-      final response = await service.generarInforme(
-        obraId: obraId,
-        actividades: _actividades,
-        avanceGeneral: avance,
-        clima: _climaController.text.trim().isEmpty
+      final service = ref.read(workLogAiServiceProvider);
+      final response = await service.generateReport(
+        projectId: projectId,
+        activities: _actividades,
+        overallProgress: avance,
+        weather: _climaController.text.trim().isEmpty
             ? null
             : _climaController.text.trim(),
-        incidencias: _incidencias.isEmpty ? null : _incidencias,
-        observaciones: _observacionesController.text.trim().isEmpty
+        incidents: _incidencias.isEmpty ? null : _incidencias,
+        observations: _observacionesController.text.trim().isEmpty
             ? null
             : _observacionesController.text.trim(),
       );

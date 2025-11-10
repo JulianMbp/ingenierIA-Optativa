@@ -3,25 +3,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/theme.dart';
-import '../../core/services/tarea_service.dart';
+import '../../core/models/project.dart';
+import '../../core/services/task_service.dart';
 import '../../core/widgets/glass_container.dart';
 import '../auth/auth_provider.dart';
 
-class SelectObraScreen extends ConsumerStatefulWidget {
-  const SelectObraScreen({super.key});
+class SelectProjectScreen extends ConsumerStatefulWidget {
+  const SelectProjectScreen({super.key});
 
   @override
-  ConsumerState<SelectObraScreen> createState() => _SelectObraScreenState();
+  ConsumerState<SelectProjectScreen> createState() => _SelectProjectScreenState();
 }
 
-class _SelectObraScreenState extends ConsumerState<SelectObraScreen> {
+class _SelectProjectScreenState extends ConsumerState<SelectProjectScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authState = ref.read(authProvider);
-      if (authState.misObras.isEmpty) {
-        ref.read(authProvider.notifier).loadMyObras();
+      if (authState.myProjects.isEmpty) {
+        ref.read(authProvider.notifier).loadMyProjects();
       }
     });
   }
@@ -29,11 +30,11 @@ class _SelectObraScreenState extends ConsumerState<SelectObraScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final obras = authState.misObras;
+    final projects = authState.myProjects;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Seleccionar Obra'),
+        title: const Text('Select Project'),
         backgroundColor: AppTheme.iosBlue,
         foregroundColor: Colors.white,
         actions: [
@@ -62,7 +63,7 @@ class _SelectObraScreenState extends ConsumerState<SelectObraScreen> {
         child: SafeArea(
           child: authState.isLoading
               ? const Center(child: CircularProgressIndicator())
-              : obras.isEmpty
+              : projects.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -74,7 +75,7 @@ class _SelectObraScreenState extends ConsumerState<SelectObraScreen> {
                           ),
                           const SizedBox(height: 16),
                           const Text(
-                            'No tienes obras asignadas',
+                            'You have no assigned projects',
                             style: TextStyle(
                               fontSize: 18,
                               color: Colors.grey,
@@ -83,9 +84,9 @@ class _SelectObraScreenState extends ConsumerState<SelectObraScreen> {
                           const SizedBox(height: 24),
                           ElevatedButton(
                             onPressed: () {
-                              ref.read(authProvider.notifier).loadMyObras();
+                              ref.read(authProvider.notifier).loadMyProjects();
                             },
-                            child: const Text('Reintentar'),
+                            child: const Text('Retry'),
                           ),
                         ],
                       ),
@@ -96,23 +97,23 @@ class _SelectObraScreenState extends ConsumerState<SelectObraScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Selecciona una obra',
+                            'Select a project',
                             style: Theme.of(context).textTheme.headlineMedium,
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Tienes acceso a ${obras.length} obra${obras.length > 1 ? 's' : ''}',
+                            'You have access to ${projects.length} project${projects.length > 1 ? 's' : ''}',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           const SizedBox(height: 24),
                           Expanded(
                             child: ListView.builder(
-                              itemCount: obras.length,
+                              itemCount: projects.length,
                               itemBuilder: (context, index) {
-                                final obra = obras[index];
+                                final project = projects[index];
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 16),
-                                  child: _ObraCard(obra: obra),
+                                  child: _ProjectCard(project: project),
                                 );
                               },
                             ),
@@ -127,47 +128,47 @@ class _SelectObraScreenState extends ConsumerState<SelectObraScreen> {
 }
 
 // Project card widget with progress
-class _ObraCard extends ConsumerStatefulWidget {
-  final dynamic obra;
+class _ProjectCard extends ConsumerStatefulWidget {
+  final Project project;
 
-  const _ObraCard({required this.obra});
+  const _ProjectCard({required this.project});
 
   @override
-  ConsumerState<_ObraCard> createState() => _ObraCardState();
+  ConsumerState<_ProjectCard> createState() => _ProjectCardState();
 }
 
-class _ObraCardState extends ConsumerState<_ObraCard> {
-  double _progreso = 0.0;
-  bool _cargandoProgreso = true;
+class _ProjectCardState extends ConsumerState<_ProjectCard> {
+  double _progress = 0.0;
+  bool _loadingProgress = true;
 
   @override
   void initState() {
     super.initState();
-    _cargarProgreso();
+    _loadProgress();
   }
 
-  Future<void> _cargarProgreso() async {
+  Future<void> _loadProgress() async {
     try {
-      final tareaService = ref.read(tareaServiceProvider);
-      final tareas = await tareaService.listTasks(widget.obra.id);
+      final taskService = ref.read(taskServiceProvider);
+      final tasks = await taskService.listTasks(widget.project.id);
 
-      if (tareas.isEmpty) {
+      if (tasks.isEmpty) {
         setState(() {
-          _progreso = 0.0;
-          _cargandoProgreso = false;
+          _progress = 0.0;
+          _loadingProgress = false;
         });
         return;
       }
 
-      final suma = tareas.fold<int>(0, (sum, t) => sum + t.progresosPorcentaje);
+      final sum = tasks.fold<int>(0, (sum, t) => sum + t.progressPercentage);
       setState(() {
-        _progreso = suma / tareas.length;
-        _cargandoProgreso = false;
+        _progress = sum / tasks.length;
+        _loadingProgress = false;
       });
     } catch (e) {
       setState(() {
-        _progreso = 0.0;
-        _cargandoProgreso = false;
+        _progress = 0.0;
+        _loadingProgress = false;
       });
     }
   }
@@ -177,7 +178,7 @@ class _ObraCardState extends ConsumerState<_ObraCard> {
     return GestureDetector(
       onTap: () async {
         final success =
-            await ref.read(authProvider.notifier).selectObra(widget.obra.id);
+            await ref.read(authProvider.notifier).selectProject(widget.project.id);
 
         if (success && context.mounted) {
           context.go('/dashboard');
@@ -201,7 +202,7 @@ class _ObraCardState extends ConsumerState<_ObraCard> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    widget.obra.nombre,
+                    widget.project.name,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -214,17 +215,17 @@ class _ObraCardState extends ConsumerState<_ObraCard> {
                 ),
               ],
             ),
-            if (widget.obra.descripcion != null) ...[
+            if (widget.project.description != null) ...[
               const SizedBox(height: 12),
               Text(
-                widget.obra.descripcion!,
+                widget.project.description!,
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
                 ),
               ),
             ],
-            if (widget.obra.direccion != null) ...[
+            if (widget.project.address != null) ...[
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -236,7 +237,7 @@ class _ObraCardState extends ConsumerState<_ObraCard> {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      widget.obra.direccion!,
+                      widget.project.address!,
                       style: const TextStyle(
                         fontSize: 13,
                         color: Colors.grey,
@@ -257,7 +258,7 @@ class _ObraCardState extends ConsumerState<_ObraCard> {
                 ),
                 const SizedBox(width: 8),
                 const Text(
-                  'Progreso:',
+                  'Progress:',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -265,7 +266,7 @@ class _ObraCardState extends ConsumerState<_ObraCard> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (_cargandoProgreso)
+                if (_loadingProgress)
                   const SizedBox(
                     width: 12,
                     height: 12,
@@ -273,13 +274,13 @@ class _ObraCardState extends ConsumerState<_ObraCard> {
                   )
                 else
                   Text(
-                    '${_progreso.toStringAsFixed(0)}%',
+                    '${_progress.toStringAsFixed(0)}%',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: _progreso < 30
+                      color: _progress < 30
                           ? Colors.red
-                          : _progreso < 70
+                          : _progress < 70
                               ? Colors.orange
                               : Colors.green,
                     ),
@@ -290,13 +291,13 @@ class _ObraCardState extends ConsumerState<_ObraCard> {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
-                value: _cargandoProgreso ? null : _progreso / 100,
+                value: _loadingProgress ? null : _progress / 100,
                 minHeight: 8,
                 backgroundColor: Colors.grey[300],
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  _progreso < 30
+                  _progress < 30
                       ? Colors.red
-                      : _progreso < 70
+                      : _progress < 70
                           ? Colors.orange
                           : Colors.green,
                 ),
@@ -305,30 +306,30 @@ class _ObraCardState extends ConsumerState<_ObraCard> {
             const SizedBox(height: 12),
             Row(
               children: [
-                if (widget.obra.estado != null) ...[
+                if (widget.project.status != null) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: widget.obra.isActiva
+                      color: widget.project.isActive
                           ? Colors.green.withOpacity(0.2)
                           : Colors.orange.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      widget.obra.estado!.toUpperCase(),
+                      widget.project.status!.toUpperCase(),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        color: widget.obra.isActiva ? Colors.green : Colors.orange,
+                        color: widget.project.isActive ? Colors.green : Colors.orange,
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
                 ],
-                if (widget.obra.roleName != null)
+                if (widget.project.roleName != null)
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -339,7 +340,7 @@ class _ObraCardState extends ConsumerState<_ObraCard> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      widget.obra.roleName!,
+                      widget.project.roleName!,
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
@@ -355,3 +356,4 @@ class _ObraCardState extends ConsumerState<_ObraCard> {
     );
   }
 }
+

@@ -56,7 +56,25 @@ class AuthService {
       };
     } catch (e) {
       print('Login error: $e');
-      throw Exception('Login failed: ${e.toString()}');
+      
+      // Provide more user-friendly error messages
+      String errorMessage = 'Error al iniciar sesión';
+      
+      if (e.toString().contains('CORS') || 
+          e.toString().contains('XMLHttpRequest') ||
+          e.toString().contains('connection error')) {
+        errorMessage = 'Error de conexión: El servidor no permite peticiones desde este origen. Por favor, verifica la configuración CORS del backend.';
+      } else if (e.toString().contains('timeout')) {
+        errorMessage = 'Tiempo de espera agotado. Por favor, verifica tu conexión a internet.';
+      } else if (e.toString().contains('401') || e.toString().contains('Unauthorized')) {
+        errorMessage = 'Credenciales incorrectas. Por favor, verifica tu email y contraseña.';
+      } else if (e.toString().contains('404') || e.toString().contains('Not Found')) {
+        errorMessage = 'Endpoint no encontrado. Por favor, verifica la configuración del servidor.';
+      } else if (e.toString().contains('500') || e.toString().contains('Internal Server Error')) {
+        errorMessage = 'Error del servidor. Por favor, intenta más tarde.';
+      }
+      
+      throw Exception(errorMessage);
     }
   }
 

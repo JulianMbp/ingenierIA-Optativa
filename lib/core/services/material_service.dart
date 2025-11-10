@@ -12,60 +12,60 @@ class MaterialService {
 
   MaterialService(this._apiService);
 
-  /// Obtiene los materiales de una obra
-  Future<List<Material>> getMateriales(
-    String obraId, {
+  /// Get materials for a project
+  Future<List<Material>> getMaterials(
+    String projectId, {
     Map<String, dynamic>? filters,
   }) async {
     final response = await _apiService.get(
-      '/obras/$obraId/materiales',
+      '/obras/$projectId/materiales', // Keep backend endpoint
       queryParameters: filters,
     );
     
-    // La API devuelve {success, data, message}
+    // API returns {success, data, message}
     final responseData = response.data;
     final data = responseData['data'] as List;
     return data.map((json) => Material.fromJson(json)).toList();
   }
 
-  /// Obtiene un material específico
-  Future<Material> getMaterial(String obraId, String materialId) async {
+  /// Get a specific material
+  Future<Material> getMaterial(String projectId, String materialId) async {
     final response = await _apiService.get(
-      '/obras/$obraId/materiales/$materialId',
+      '/obras/$projectId/materiales/$materialId', // Keep backend endpoint
     );
     final responseData = response.data;
     return Material.fromJson(responseData['data']);
   }
 
-  /// Crea un nuevo material
+  /// Create a new material
   Future<Material> createMaterial(
-    String obraId,
+    String projectId,
     Map<String, dynamic> data,
   ) async {
     final response = await _apiService.post(
-      '/obras/$obraId/materiales',
+      '/obras/$projectId/materiales', // Keep backend endpoint
       data: data,
     );
     final responseData = response.data;
     return Material.fromJson(responseData['data']);
   }
 
-  /// Actualiza un material
+  /// Update a material
   Future<Material> updateMaterial(
-    String obraId,
+    String projectId,
     String materialId,
     Map<String, dynamic> data,
   ) async {
     final response = await _apiService.patch(
-      '/obras/$obraId/materiales/$materialId',
+      '/obras/$projectId/materiales/$materialId', // Keep backend endpoint
       data: data,
     );
     final responseData = response.data;
     return Material.fromJson(responseData['data']);
   }
 
-  /// Elimina un material
-  Future<void> deleteMaterial(String obraId, String materialId) async {
-    await _apiService.delete('/obras/$obraId/materiales/$materialId');
+  /// Delete a material
+  Future<void> deleteMaterial(String projectId, String materialId) async {
+    await _apiService.delete('/obras/$projectId/materiales/$materialId'); // Keep backend endpoint
   }
 }

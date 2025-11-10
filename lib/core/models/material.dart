@@ -1,22 +1,23 @@
+/// Material model (maps to 'material' from backend)
 class Material {
   final String id;
-  final String obraId;
-  final String nombre;
-  final String? categoria;
-  final String? cantidad;
-  final String? unidad;
-  final String? proveedor;
+  final String projectId; // obra_id from backend
+  final String name; // nombre from backend
+  final String? category; // categoria from backend
+  final String? quantity; // cantidad from backend
+  final String? unit; // unidad from backend
+  final String? supplier; // proveedor from backend
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
   Material({
     required this.id,
-    required this.obraId,
-    required this.nombre,
-    this.categoria,
-    this.cantidad,
-    this.unidad,
-    this.proveedor,
+    required this.projectId,
+    required this.name,
+    this.category,
+    this.quantity,
+    this.unit,
+    this.supplier,
     this.createdAt,
     this.updatedAt,
   });
@@ -24,12 +25,12 @@ class Material {
   factory Material.fromJson(Map<String, dynamic> json) {
     return Material(
       id: json['id'] as String,
-      obraId: json['obra_id'] as String,
-      nombre: json['nombre'] as String,
-      categoria: json['categoria'] as String?,
-      cantidad: json['cantidad'] as String?,
-      unidad: json['unidad'] as String?,
-      proveedor: json['proveedor'] as String?,
+      projectId: json['obra_id'] as String,
+      name: json['nombre'] as String,
+      category: json['categoria'] as String?,
+      quantity: json['cantidad'] as String?,
+      unit: json['unidad'] as String?,
+      supplier: json['proveedor'] as String?,
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -42,12 +43,12 @@ class Material {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'obra_id': obraId,
-      'nombre': nombre,
-      'categoria': categoria,
-      'cantidad': cantidad,
-      'unidad': unidad,
-      'proveedor': proveedor,
+      'obra_id': projectId, // Keep backend field name
+      'nombre': name,
+      'categoria': category,
+      'cantidad': quantity,
+      'unidad': unit,
+      'proveedor': supplier,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };

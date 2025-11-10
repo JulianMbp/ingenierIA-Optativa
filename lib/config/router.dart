@@ -5,14 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/auth_provider.dart';
 import '../features/auth/login_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
-import '../features/dashboard/modules/asistencias_screen.dart';
-import '../features/dashboard/modules/bitacoras_screen.dart';
+import '../features/dashboard/modules/attendance_screen.dart';
+import '../features/dashboard/modules/work_logs_screen.dart';
 import '../features/dashboard/modules/chat_ia_screen.dart';
 import '../features/dashboard/modules/documentos_screen.dart';
 import '../features/dashboard/modules/logs_screen.dart';
-import '../features/dashboard/modules/materiales_screen.dart';
-import '../features/dashboard/modules/tareas_screen.dart';
-import '../features/obras/select_obra_screen.dart';
+import '../features/dashboard/modules/materials_screen.dart';
+import '../features/dashboard/modules/tasks_screen.dart';
+import '../features/projects/select_project_screen.dart';
 import '../features/profile/profile_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
@@ -24,10 +24,10 @@ class RouterNotifier extends ChangeNotifier {
 final _routerNotifierProvider = Provider<RouterNotifier>((ref) {
   final notifier = RouterNotifier();
   
-  // Escuchar cambios en el estado de autenticación
+  // Listen to authentication state changes
   ref.listen(authProvider, (previous, next) {
-    // Notificar al router para que reevalúe las rutas
-    // Usar un pequeño delay para asegurar que el estado se haya actualizado
+    // Notify router to reevaluate routes
+    // Use a small delay to ensure state has been updated
     Future.microtask(() {
       notifier.notify();
     });
@@ -45,35 +45,35 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final authState = ref.read(authProvider);
       final isLoggedIn = authState.token != null && authState.user != null;
-      final hasObraSelected = authState.hasObraSelected;
+      final hasProjectSelected = authState.hasProjectSelected;
       final isLoggingIn = state.matchedLocation == '/login';
-      final isSelectingObra = state.matchedLocation == '/select-obra';
+      final isSelectingProject = state.matchedLocation == '/select-project';
       final isLoading = authState.isLoading;
 
-      print('Router redirect - isLoggedIn: $isLoggedIn, hasObra: $hasObraSelected, isLoading: $isLoading, location: ${state.matchedLocation}');
+      print('Router redirect - isLoggedIn: $isLoggedIn, hasProject: $hasProjectSelected, isLoading: $isLoading, location: ${state.matchedLocation}');
 
-      // Si está cargando durante el login, esperar
+      // If loading during login, wait
       if (isLoading && isLoggingIn) {
-        return null; // No redirigir mientras se está haciendo login
+        return null; // Don't redirect while logging in
       }
 
       if (!isLoggedIn && !isLoggingIn) {
         return '/login';
       }
 
-      // Después del login exitoso, redirigir a select-obra
+      // After successful login, redirect to select-project
       if (isLoggedIn && isLoggingIn) {
-        print('Redirigiendo a select-obra después del login');
-        return '/select-obra';
+        print('Redirecting to select-project after login');
+        return '/select-project';
       }
 
-      // Si está logueado pero no tiene obra seleccionada, ir a select-obra
-      if (isLoggedIn && !hasObraSelected && !isSelectingObra && !isLoggingIn) {
-        return '/select-obra';
+      // If logged in but no project selected, go to select-project
+      if (isLoggedIn && !hasProjectSelected && !isSelectingProject && !isLoggingIn) {
+        return '/select-project';
       }
 
-      // Si está en select-obra pero ya tiene obra seleccionada, ir a dashboard
-      if (isLoggedIn && hasObraSelected && isSelectingObra) {
+      // If in select-project but already has project selected, go to dashboard
+      if (isLoggedIn && hasProjectSelected && isSelectingProject) {
         return '/dashboard';
       }
 
@@ -85,8 +85,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
-        path: '/select-obra',
-        builder: (context, state) => const SelectObraScreen(),
+        path: '/select-project',
+        builder: (context, state) => const SelectProjectScreen(),
       ),
       GoRoute(
         path: '/dashboard',
@@ -97,20 +97,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ProfileScreen(),
       ),
       GoRoute(
-        path: '/modules/materiales',
-        builder: (context, state) => const MaterialesScreen(),
+        path: '/modules/materials',
+        builder: (context, state) => const MaterialsScreen(),
       ),
       GoRoute(
-        path: '/modules/tareas',
-        builder: (context, state) => const TareasScreen(),
+        path: '/modules/tasks',
+        builder: (context, state) => const TasksScreen(),
       ),
       GoRoute(
-        path: '/modules/bitacoras',
-        builder: (context, state) => const BitacorasScreen(),
+        path: '/modules/work-logs',
+        builder: (context, state) => const WorkLogsScreen(),
       ),
       GoRoute(
-        path: '/modules/asistencias',
-        builder: (context, state) => const AsistenciasScreen(),
+        path: '/modules/attendance',
+        builder: (context, state) => const AttendanceScreen(),
       ),
       GoRoute(
         path: '/modules/documentos',
