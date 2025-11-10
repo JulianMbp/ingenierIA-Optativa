@@ -9,8 +9,8 @@ class ApiConfig {
   static const Environment _environment = Environment.development;
   
   // URLs de backend según ambiente
-  static const String _developmentUrl = 'http://localhost:3000/api/v1';
-  static const String _productionUrl = 'https://ingenieria.julian-mbp.pro/api/v1'; // 🔴 URL de producción
+  static const String _developmentUrl = 'https://ingenieria.julian-mbp.pro/api/v1';
+  static const String _productionUrl = 'https://ingenieria.julian-mbp.pro/api/v1';
   
   // Selecciona la URL según el ambiente
   static String get baseUrl {
