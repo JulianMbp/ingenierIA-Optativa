@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/models/material.dart' as material_model;
 import '../../../core/models/task.dart';
 import '../../../core/providers/project_progress_provider.dart';
+import '../../../core/services/material_service.dart';
 import '../../../core/services/task_service.dart';
+import '../../../core/widgets/materials_progress_widget.dart';
 import '../../../core/widgets/offline_banner.dart';
 import '../../auth/auth_provider.dart';
 
@@ -18,7 +21,9 @@ class TasksScreen extends ConsumerStatefulWidget {
 
 class _TasksScreenState extends ConsumerState<TasksScreen> {
   List<Task> _tasks = [];
+  List<material_model.Material> _materials = [];
   bool _isLoading = true;
+  bool _isLoadingMaterials = false;
   String _statusFilter = 'all';
   double _generalProgress = 0.0;
   bool _loadingProgress = false;
@@ -28,6 +33,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
   void initState() {
     super.initState();
     _loadTasks();
+    _loadMaterials();
   }
 
   Future<void> _loadTasks() async {
@@ -74,6 +80,31 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
           SnackBar(content: Text(errorMessage)),
         );
       }
+    }
+  }
+
+  Future<void> _loadMaterials() async {
+    setState(() => _isLoadingMaterials = true);
+    try {
+      final authState = ref.read(authProvider);
+      final projectId = authState.currentProject?.id;
+
+      if (projectId == null) {
+        setState(() => _isLoadingMaterials = false);
+        return;
+      }
+
+      final materialService = ref.read(materialServiceProvider);
+      final materials = await materialService.getMaterials(projectId);
+
+      setState(() {
+        _materials = materials;
+        _isLoadingMaterials = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingMaterials = false);
+      // Silently fail for materials - don't show error to user
+      // Materials progress is optional information
     }
   }
 
@@ -137,7 +168,10 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _loadTasks,
+            onPressed: () {
+              _loadTasks();
+              _loadMaterials();
+            },
           ),
         ],
       ),
@@ -205,6 +239,14 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
               ],
             ),
           ),
+          // Materials progress widget
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: MaterialsProgressWidget(
+              materials: _materials,
+              isLoading: _isLoadingMaterials,
+            ),
+          ),
 
           // Filters
           Padding(
@@ -246,7 +288,10 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                         ),
                       )
                     : RefreshIndicator(
-                        onRefresh: _loadTasks,
+                        onRefresh: () async {
+                          await _loadTasks();
+                          await _loadMaterials();
+                        },
                         child: ListView.builder(
                           itemCount: _filteredTasks.length,
                           itemBuilder: (context, index) {
@@ -327,6 +372,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
 
       // Reload tasks (this will also recalculate progress automatically)
       _loadTasks();
+      // Also reload materials to keep progress updated
+      _loadMaterials();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
