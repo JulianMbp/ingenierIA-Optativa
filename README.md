@@ -120,6 +120,70 @@ static const Environment _environment = Environment.development; // o Environmen
 flutter pub run flutter_launcher_icons
 ```
 
+## 👥 Usuarios de Prueba
+
+Para facilitar las pruebas de la aplicación, se han creado los siguientes usuarios de prueba con diferentes roles:
+
+### Admin General
+- **Email**: `admin.general@ingenieria.com`
+- **Nombre**: Julian Bastidas
+- **Rol**: Admin General
+- **Acceso**: Acceso completo a todos los módulos
+
+### Admin Obra
+- **Email**: `admin.obra1@ingenieria.com`
+- **Nombre**: Maria Perez
+- **Rol**: Admin Obra
+- **Acceso**: Gestión de materiales, tareas, bitácoras, chat IA
+
+- **Email**: `admin.obra2@ingenieria.com`
+- **Nombre**: Carlos Lopez
+- **Rol**: Admin Obra
+
+### Encargado de Área
+- **Email**: `encargado.area1@ingenieria.com`
+- **Nombre**: Ana Martinez
+- **Rol**: Encargado de Área
+
+- **Email**: `encargado.area2@ingenieria.com`
+- **Nombre**: Luis Ramirez
+- **Rol**: Encargado de Área
+
+### Obrero
+- **Email**: `obrero.1@ingenieria.com`
+- **Nombre**: Andres Castro
+- **Rol**: Obrero
+- **Acceso**: Chat IA, Asistencias, Bitácoras
+
+- **Email**: `obrero.2@ingenieria.com`
+- **Nombre**: Pedro Gomez
+- **Rol**: Obrero
+
+### SST (Seguridad y Salud en el Trabajo)
+- **Email**: `sst.1@ingenieria.com`
+- **Nombre**: Sandra Rodriguez
+- **Rol**: SST
+- **Acceso**: Chat IA, Documentos, Bitácoras
+
+### Compras
+- **Email**: `compras.1@ingenieria.com`
+- **Nombre**: Roberto Sanchez
+- **Rol**: Compras
+
+### RRHH (Recursos Humanos)
+- **Email**: `rrhh.1@ingenieria.com`
+- **Nombre**: Laura Hernandez
+- **Rol**: RRHH
+- **Acceso**: Chat IA, Asistencias
+
+### Consultor
+- **Email**: `consultor.1@ingenieria.com`
+- **Nombre**: Miguel Torres
+- **Rol**: Consultor
+
+### Nota sobre Contraseñas
+Las contraseñas para estos usuarios de prueba deben ser configuradas en el backend. Por favor, contacta al administrador del sistema para obtener las contraseñas o configurar nuevas contraseñas de prueba.
+
 ## 🚀 Cómo Ejecutar
 
 ### Modo Desarrollo
