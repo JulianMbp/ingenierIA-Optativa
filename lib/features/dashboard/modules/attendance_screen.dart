@@ -82,33 +82,52 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
     try {
       final authState = ref.read(authProvider);
       final projectId = authState.currentProject?.id;
-      final userId = authState.user?.id;
 
-      if (projectId == null || userId == null) return;
+      if (projectId == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No project selected')),
+          );
+        }
+        return;
+      }
 
       final attendanceService = ref.read(attendanceServiceProvider);
       final today = DateTime.now();
+      
+      // Backend automatically gets usuario_id from JWT token
+      // Only send estado and fecha (backend gets obra_id from URL and usuario_id from token)
       final data = {
-        'obra_id': projectId, // Keep backend field name
-        'usuario_id': userId, // Keep backend field name
         'fecha': '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}', // Keep backend field name
         'estado': status, // Keep backend field name
-        'observaciones': null, // Keep backend field name
+        // observaciones is optional, don't include if null
       };
 
       await attendanceService.createAttendance(projectId, data);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Attendance marked as $status')),
+          SnackBar(content: Text('Attendance marked as ${_getStatusText(status)}')),
         );
       }
 
       _loadAttendances();
     } catch (e) {
       if (mounted) {
+        String errorMessage = 'Error marking attendance';
+        if (e.toString().contains('403')) {
+          errorMessage = 'You don\'t have permission to mark attendance. Please contact your administrator.';
+        } else if (e.toString().contains('400')) {
+          errorMessage = 'Invalid request. Please try again.';
+        } else {
+          errorMessage = 'Error: ${e.toString()}';
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error marking attendance: $e')),
+          SnackBar(
+            content: Text(errorMessage),
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     }
